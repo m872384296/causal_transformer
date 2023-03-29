@@ -1,0 +1,5 @@
+checkpoints/
+datasets/
+logs/
+pretrain_models/
+*.out
