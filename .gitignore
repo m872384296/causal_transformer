@@ -1,5 +1,4 @@
-checkpoints/
-datasets/
-logs/
-pretrain_models/
+datasets/*
+logs/*
+*.pth
 *.out
