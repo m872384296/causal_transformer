@@ -19,7 +19,7 @@ from utils.train_module import train_one_epoch, validate
 def main(rank, config):
     setup(rank, config['world_size'])
     logger = create_logger(output_dir=config['log_path'], dist_rank=rank, name='Training')
-    init_trainloader = build_trainloader(config)
+    init_trainloader = build_trainloader(rank, config)
     train_loader = init_trainloader.train_loader()
     val_loader = init_trainloader.val_loader()
     net = build_all_net(config, init_trainloader) 

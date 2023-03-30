@@ -44,11 +44,12 @@ def main(args):
             y_all = torch.cat((y_all, y), 0)
             path_all.extend(path_img)
     logger.info('Testing finished !!!')
+    label_map = np.loadtxt('./temp/label_map', dtype=str).tolist()
     if init_testloader.num_classes == 1:
         prob = torch.sigmoid(y_all).cpu().numpy().flatten()
         if args.label_file:
-            label_raw = pd.read_csv(args.label_file, header=None, index_col=0).squeeze().to_dict()
-            label = [label_raw[x] for x in path_all]
+            label_raw = pd.read_csv(args.label_file, header=None, index_col=0, dtype=str).squeeze().to_dict()
+            label = [label_map.index(label_raw[x]) for x in path_all]
             fpr, tpr, thresholds = roc_curve(label, prob)
             auroc = auc(fpr, tpr)
             threshold = thresholds[np.argmax(tpr - fpr)]
@@ -62,10 +63,10 @@ def main(args):
             threshold = np.loadtxt('./temp/threshold')
         else:
             threshold = 0.5
-        predict = np.where(prob > threshold, 1, 0)
-        output = pd.DataFrame(zip(path_all, prob.tolist(), predict.tolist()), columns=['file_name', 'probability', f'predict<normal is 0~{threshold:.3f}>'])
+        predict = np.where(prob > threshold, 1, 0).tolist()
+        predict = [label_map[x] for x in predict]
+        output = pd.DataFrame(zip(path_all, prob.tolist(), predict), columns=['file_name', 'probability', f'predict<{label_map[0]} is 0~{threshold:.3f}>'])
     else:
-        label_map = np.loadtxt('./temp/label_map', dtype=str).tolist()
         predict = np.argmax(y_all.cpu().numpy(), axis=1).tolist()
         predict = [label_map[x] for x in predict]
         if args.label_file:

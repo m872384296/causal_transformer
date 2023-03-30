@@ -17,14 +17,12 @@ class train_dataset(Dataset):
         
         tr_lab_dir = os.path.join(self.data_dir, 'train/label.txt')
         val_lab_dir = os.path.join(self.data_dir, 'val/label.txt')
-        self.label_train = pd.read_csv(tr_lab_dir, header=None).to_numpy().flatten()
-        self.label_val = pd.read_csv(val_lab_dir, header=None).to_numpy().flatten()
-        if self.label_train.dtype.name == 'object':
-            label_train = pd.Categorical(self.label_train)
-            label_map = label_train.categories
-            self.label_train = label_train.codes
-            self.label_val = pd.Categorical(self.label_val, categories=label_map).codes
-            pd.DataFrame(label_map).to_csv('./temp/label_map', header=False, index=False)
+        label_train = np.loadtxt(tr_lab_dir, dtype=str)
+        label_val = np.loadtxt(val_lab_dir, dtype=str)
+        label_train = pd.Categorical(label_train)
+        self.label_map = label_train.categories
+        self.label_train = label_train.codes
+        self.label_val = pd.Categorical(label_val, categories=self.label_map).codes
         tr_conf_dir = os.path.join(self.data_dir, 'train/confounder.csv')
         self.conf_train = pd.read_csv(tr_conf_dir)
         numeric_features = self.conf_train.dtypes[self.conf_train.dtypes != 'object'].index
@@ -77,7 +75,7 @@ class test_dataset(Dataset):
         return length
 
 class build_trainloader:
-    def __init__(self, config):
+    def __init__(self, rank, config):
         self.batch_size = config['batch_size']
         self.path = config['data_path']
         if config['mean'] is not None:
@@ -94,12 +92,14 @@ class build_trainloader:
             self.std = 0.5
         self.size = config['img_size']
         self.num_workers = config['num_workers']
-        self.num_classes = config['num_classes']
-        if self.num_classes == 2:
-            self.num_classes = 1
-            
         tr_transform = train_transform(self.mean, self.std, self.size)         
         self.train_set = train_dataset(root=self.path, train=True, transform=tr_transform)
+        label_map = self.train_set.label_map
+        if rank == 0:
+            pd.DataFrame(label_map).to_csv('./temp/label_map', header=False, index=False)
+        self.num_classes = label_map.shape[0]
+        if self.num_classes == 2:
+            self.num_classes = 1
         self.dim_conf = self.train_set.conf_train.shape[1]
         self.num_train = len(self.train_set)
         
@@ -135,7 +135,8 @@ class build_testloader:
         self.mean = mean
         self.std = std
         self.size = config['img_size']
-        self.num_classes = config['num_classes']
+        label_map = np.loadtxt('./temp/label_map', dtype=str)
+        self.num_classes = label_map.shape[0]
         if self.num_classes == 2:
             self.num_classes = 1
         
