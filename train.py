@@ -30,7 +30,7 @@ def main(rank, config):
     lr_scheduler = build_lrs(optimizer)
     scaler = amp.GradScaler()
     map_location = {'cuda:%d' % 0: 'cuda:%d' % rank}
-    if config['resume_flag']:
+    if config['resume_epoch']:
         load_checkpoint(config, net_without_ddp, optimizer, lr_scheduler, scaler, map_location, logger)
     else:
         load_pretrained(config, net_without_ddp[0], map_location, logger)
