@@ -1,7 +1,7 @@
-datasets/*
+datasets/
 logs/
 *.pth
 *.out
 !.gitkeep
 .ipynb_checkpoints/
-__pycache__
+__pycache__/
