@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import argparse
 import yaml
 from utils.data_preprocess import create_dataset
