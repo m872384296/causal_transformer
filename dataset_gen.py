@@ -9,7 +9,7 @@ def main(args):
     with open(args.cfg) as f:
         config = yaml.safe_load(f)
     logger = create_logger(output_dir=config['log_path'], name='Generating datasets')
-    create_dataset(args.cxr_root, args.mimic_root, config['path'], logger)
+    create_dataset(args.cxr_root, args.mimic_root, config['data_path'], logger)
     
 if __name__ == '__main__':    
     parser = argparse.ArgumentParser()
