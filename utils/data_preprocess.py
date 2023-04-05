@@ -14,7 +14,7 @@ def create_dataset(cxr_root, mimic_root, target_path, logger):
     adm = pd.read_csv(os.path.join(mimic_root, 'admissions.csv.gz'), compression='gzip')
     pat = pd.read_csv(os.path.join(mimic_root, 'patients.csv.gz'), compression='gzip')
     omr = pd.read_csv(os.path.join(mimic_root, 'omr.csv.gz'), compression='gzip')
-    chunk = pd.read_csv(os.path.join(mimic_root, 'labevents.csv.gz'), chunksize=100000, compression='gzip')
+    chunk = pd.read_csv(os.path.join(mimic_root, 'labevents.csv.gz'), chunksize=500000, compression='gzip')
     lab = pd.concat(chunk)
     label = label[['subject_id', 'study_id', 'Pneumonia']].dropna()
     label = label.drop(label[label['Pneumonia']==-1].index)
