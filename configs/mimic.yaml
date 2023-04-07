@@ -1,6 +1,6 @@
 img_size: 192
 n_env: 4
-data_path: /data2/maqin/datasets/mimic
+data_path: ./datasets/mimic
 batch_size: 25
 mean: null
 std: null
