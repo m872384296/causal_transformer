@@ -1,9 +1,10 @@
 from torch.nn import TransformerDecoderLayer, TransformerDecoder, LayerNorm
 import torch.nn.functional as F
-from torch import nn
+from torch import nn, autograd
+from torch.cuda.amp import autocast
 
 class decoder(nn.Module):
-    def __init__(self, dim_conf, num_classes):
+    def __init__(self, dim_conf):
         super().__init__()
         self.embedding = nn.Linear(dim_conf, 1536)
         decoder_layer = TransformerDecoderLayer(d_model=1536, 
@@ -16,10 +17,10 @@ class decoder(nn.Module):
                                                 norm_first=False)
         decoder_norm = LayerNorm(1536, 1e-5)
         self.decoder = TransformerDecoder(decoder_layer, 6, decoder_norm)
-        self.predictor = nn.Linear(1536, num_classes)
         
+    @autocast()
     def forward(self, x, memory):
-        x = self.embedding(x).unsqueeze(1)
-        x = self.decoder(x, memory).squeeze(1)
-        x = self.predictor(x)
+        with autograd.graph.save_on_cpu(pin_memory=True):
+            x = self.embedding(x).unsqueeze(1)
+            x = self.decoder(x, memory).squeeze(1)
         return x

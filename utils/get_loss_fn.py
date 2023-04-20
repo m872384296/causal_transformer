@@ -1,12 +1,15 @@
 import torch
 import torch.nn.functional as F
+from torch.cuda.amp import autocast
+from torch.distributions.multivariate_normal import MultivariateNormal
 
 class irm_loss(torch.nn.Module):
     def __init__(self, num_classes):
         super().__init__()
         self.num_classes = num_classes
-        
-    def forward(self, outputs, labels, soft_split_all, idx):
+    
+    @autocast()
+    def forward(self, outputs, labels, split_all, idx):
         if self.num_classes == 1:
             loss_value = F.binary_cross_entropy_with_logits(outputs.squeeze(1), labels.float(), reduction='none')
             scale = torch.ones((1, outputs.size(-1))).cuda().requires_grad_()
@@ -15,24 +18,58 @@ class irm_loss(torch.nn.Module):
             loss_value = F.cross_entropy(outputs, labels, reduction='none')
             scale = torch.ones((1, outputs.size(-1))).cuda().requires_grad_()
             penalty = F.cross_entropy(outputs * scale, labels, reduction='none')
-        split_logits = F.log_softmax(soft_split_all, dim=-1)
-        hard_split_all = F.gumbel_softmax(split_logits, tau=1, hard=True)
-        hard_split = hard_split_all[idx]
-        penalty = (hard_split * penalty.unsqueeze(-1) / (hard_split.sum(0) + 1e-20)).sum(0)
-        erm_risk = (hard_split * loss_value.unsqueeze(-1) / (hard_split.sum(0) + 1e-20)).sum(0)
+        split = split_all[idx]
+        penalty = (split * penalty.unsqueeze(-1) / (split.sum(0) + 1e-20)).sum(0)
+        erm_risk = (split * loss_value.unsqueeze(-1) / (split.sum(0) + 1e-20)).sum(0)
         irm_risk_list = []
         for index in range(penalty.size(0)):
             irm_risk = torch.autograd.grad(penalty[index], [scale], create_graph=True)[0]
             irm_risk_list.append(torch.sum(irm_risk ** 2))
         erm = erm_risk.mean()
         penalty = torch.stack(irm_risk_list).mean()
-        irm_risk_final = erm + 1e6 * penalty
-        scale_multi = irm_scale(irm_risk_final, 50)
+        irm_risk_final = erm + 1e1 * penalty
+        scale_multi = loss_scale(irm_risk_final, 50)
         irm_risk_final *= scale_multi
-        # return irm_risk_final, erm, penalty
-        return erm
+        return irm_risk_final, erm, penalty
+
+class em_loss(torch.nn.Module):
+    def __init__(self, n_envs):
+        super().__init__()
+        self.n_envs = n_envs
     
-def irm_scale(irm_loss, default_scale=100):
+    def forward(self, x):
+        dims = x.shape[1]
+        eps = (torch.eye(dims) * 2 * torch.finfo(torch.float16).eps).cuda()
+        mu = torch.randn(self.n_envs, dims).cuda()
+        cov = torch.stack(self.n_envs * [torch.eye(dims)]).cuda()
+        pi = torch.ones(self.n_envs).div_(self.n_envs).cuda()
+        x = x.unsqueeze(1)
+        converged = False
+        i = 0
+        while not converged:
+            prev_mu = mu.clone()
+            prev_cov = cov.clone()
+            prev_pi = pi.clone()
+            h = MultivariateNormal(mu, cov)
+            llhood = h.log_prob(x)
+            weighted_llhood = llhood + torch.log(pi)
+            log_sum_lhood = torch.logsumexp(weighted_llhood, dim=1, keepdim=True)
+            log_posterior = weighted_llhood - log_sum_lhood
+            posterior = torch.exp(log_posterior.unsqueeze(2))
+            pi = torch.sum(posterior, dim=0)
+            mu = torch.sum(posterior * x, dim=0) / pi
+            cov = torch.matmul((posterior * (x - mu)).permute(1, 2, 0), (x - mu).permute(1, 0, 2)) / pi.unsqueeze(2) + eps
+            pi = pi.squeeze() / x.shape[0]
+            allclose = torch.allclose(mu, prev_mu) and torch.allclose(cov, prev_cov) and torch.allclose(pi, prev_pi)
+            i += 1
+            max_iter = i > 2
+            converged = allclose or max_iter
+        scale_multi = loss_scale(log_sum_lhood.mean(), -50)
+        loss = log_sum_lhood.mean() * scale_multi
+        split_all = F.one_hot(weighted_llhood.detach().argmax(dim=1))
+        return loss, log_sum_lhood.mean().item(), split_all
+        
+def loss_scale(loss, default_scale=100):
     with torch.no_grad():
-        scale =  default_scale / irm_loss.clone().detach()
+        scale =  default_scale / torch.abs(loss.clone().detach())
     return scale

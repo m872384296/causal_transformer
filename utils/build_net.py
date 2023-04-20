@@ -1,6 +1,5 @@
 from models.swin_transformer_v2 import SwinTransformerV2
 from models.transformer_decoder import decoder
-from models.split_parameter import split_param
 from torch.nn import ModuleList
 
 def build_swinv2(config, num_classes):
@@ -16,8 +15,7 @@ def build_swinv2(config, num_classes):
 
 def build_all_net(config, init_trainloader):
     cls_net = build_swinv2(config, init_trainloader.num_classes)[0]
-    spl_net = decoder(init_trainloader.dim_conf, init_trainloader.num_classes)
-    spl_param = split_param(init_trainloader.num_train, config['n_env'])
-    net = ModuleList([cls_net, spl_net, spl_param])
+    spl_net = decoder(init_trainloader.dim_conf)
+    net = ModuleList([cls_net, spl_net])
     return net
     

@@ -27,13 +27,10 @@ def set_weight_decay(model, skip_list=(), skip_keywords=()):
                 check_keywords_in_name(name, skip_keywords):
             no_decay.append(param)
             # print(f"{name} has no weight decay")
-        elif name.endswith("soft_split"):
-            split_lr.append(param)
         else:
             has_decay.append(param)
     return [{'params': has_decay},
-            {'params': no_decay, 'weight_decay': 0.},
-            {'params': split_lr, 'weight_decay': 0., 'lr': 0.001}]
+            {'params': no_decay, 'weight_decay': 0.}]
 
 def check_keywords_in_name(name, keywords=()):
     isin = False

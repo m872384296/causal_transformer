@@ -4,6 +4,7 @@ import torch.nn.functional as F
 import torch.utils.checkpoint as checkpoint
 from timm.models.layers import DropPath, to_2tuple, trunc_normal_
 import numpy as np
+from torch.cuda.amp import autocast
 
 
 class Mlp(nn.Module):
@@ -613,6 +614,7 @@ class SwinTransformerV2(nn.Module):
         x = torch.flatten(x, 1)
         return x, x_feature
 
+    @autocast()
     def forward(self, x):
         x, x_feature = self.forward_features(x)
         x = self.head(x)

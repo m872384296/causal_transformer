@@ -73,6 +73,22 @@ class test_dataset(Dataset):
     def __len__(self):
         length = len(self.walk_path)
         return length
+    
+class env_dataset(Dataset):
+    def __init__(self, conf, h, idx):
+        self.conf = conf
+        self.h = h
+        self.idx = idx
+        
+    def __getitem__(self, index):
+        loc = torch.nonzero(self.idx==index)[0].squeeze()
+        conf = self.conf[loc]
+        h = self.h[loc]
+        return conf, h
+    
+    def __len__(self):
+        length = torch.max(self.idx) + 1
+        return length.int()
 
 class build_trainloader:
     def __init__(self, rank, config):
@@ -149,3 +165,14 @@ class build_testloader:
             num_workers=num_workers
         )
         return test_loader
+    
+def build_envloader(config, conf, h, idx):
+    env_set = env_dataset(conf, h, idx)
+    env_loader = DataLoader(
+        env_set, 
+        batch_size=config['batch_size_spl'], 
+        num_workers=config['num_workers'],
+        pin_memory=True,
+        persistent_workers=True
+    )
+    return env_loader

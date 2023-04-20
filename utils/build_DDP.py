@@ -7,9 +7,8 @@ from torch.cuda import set_device
 
 def DDP(net, rank):
     cls_net = parallel.DistributedDataParallel(net[0], device_ids=[rank])
-    spl_net = parallel.DistributedDataParallel(net[1], device_ids=[rank])
-    spl_param = parallel.DistributedDataParallel(net[2], device_ids=[rank])
-    net = ModuleList([cls_net, spl_net, spl_param])
+    spl_net = net[1]
+    net = ModuleList([cls_net, spl_net])
     return net
 
 def run(main, config):
