@@ -1,6 +1,6 @@
 from torch import optim as optim
 
-def build_optimizer(model):
+def build_optimizer(model, lr=1e-4, weight_decay=0.05):
     """
     Build optimizer, set weight decay of normalization to 0 by default.
     """
@@ -12,7 +12,7 @@ def build_optimizer(model):
         skip_keywords = model.no_weight_decay_keywords()
     parameters = set_weight_decay(model, skip, skip_keywords)
     optimizer = optim.AdamW(parameters, eps=1e-8, betas=(0.9, 0.999),
-                            lr=1e-4, weight_decay=0.05)
+                            lr=lr, weight_decay=weight_decay)
     return optimizer
 
 def set_weight_decay(model, skip_list=(), skip_keywords=()):

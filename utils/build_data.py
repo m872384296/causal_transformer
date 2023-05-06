@@ -51,7 +51,8 @@ class train_dataset(Dataset):
 
     def __len__(self):
         if self.train:                
-            length = len(self.label_train)
+            # length = len(self.label_train)
+            length = 10000
         else:
             length = len(self.label_val)
         return length

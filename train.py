@@ -30,10 +30,10 @@ def main(rank, config):
     net.cuda(rank)
     net_without_ddp = net
     net = DDP(net, rank)
-    opt_cls = build_optimizer(net[0])
-    opt_spl = build_optimizer(net[1])
-    lrs_cls = build_lrs(opt_cls)
-    lrs_spl = build_lrs(opt_spl)
+    opt_cls = build_optimizer(net[0], lr=1e-4, weight_decay=0.05)
+    opt_spl = build_optimizer(net[1], lr=1e-4, weight_decay=0.05)
+    lrs_cls = build_lrs(opt_cls, milestone=100, T_max=100)
+    lrs_spl = build_lrs(opt_spl, milestone=10, T_max=10)
     scaler = amp.GradScaler()
     map_location = {'cuda:%d' % 0: 'cuda:%d' % rank}
     if config['resume_epoch']:
@@ -52,10 +52,10 @@ def main(rank, config):
         train_loader.sampler.set_epoch(epoch)
         logger.info('=' * 50)
         logger.info(f'Epoch {epoch} begin training and environment splitting......')
-        # conf, h, idx = train_cls_module(config, rank, epoch, net[0], split_all, irm_lossfn, train_loader, opt_cls, lrs_cls, scaler, logger, writer)
-        conf = torch.randn(40624, 22)
-        h = torch.randn(40624, 36, 1536)
-        idx = torch.arange(40624)
+        conf, h, idx = train_cls_module(config, rank, epoch, net[0], split_all, irm_lossfn, train_loader, opt_cls, lrs_cls, scaler, logger, writer)
+        # conf = torch.randn(40624, 22)
+        # h = torch.randn(40624, 36, 1536)
+        # idx = torch.arange(40624)
         if rank == 0:
             env_loader = build_envloader(config, conf, h, idx)
             split_all = train_spl_module(epoch, net[1], em_lossfn, env_loader, opt_spl, lrs_spl, logger, writer)

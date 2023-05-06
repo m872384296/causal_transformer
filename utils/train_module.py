@@ -4,6 +4,7 @@ from torch.cuda.amp import autocast
 import torch
 import torch.distributed as dist
 from sklearn.metrics import roc_auc_score, f1_score
+from utils.build_net import weight_init
 
 def train_cls_module(config, rank, epoch, net, split_all, loss_fn, train_loader, optimizer, lr_scheduler, scaler, logger, writer):
     net.train()
@@ -86,8 +87,9 @@ def train_cls_module(config, rank, epoch, net, split_all, loss_fn, train_loader,
     return conf_all, h_all, idx_all
 
 def train_spl_module(epoch, net, loss_fn, env_loader, optimizer, lr_scheduler, logger, writer):
+    net.apply(weight_init)
     net.train()
-    for step in tqdm(range(20), desc=f'Spliting epoch {epoch}'):
+    for step in tqdm(range(10), desc=f'Spliting epoch {epoch}'):
         y_all = torch.tensor([]).cuda()
         for conf, h in env_loader:
             conf = conf.cuda(non_blocking=True)
@@ -101,8 +103,8 @@ def train_spl_module(epoch, net, loss_fn, env_loader, optimizer, lr_scheduler, l
         optimizer.step()
         lr_scheduler.step()
         lr = optimizer.param_groups[0]['lr']
-        writer.add_scalar('Learning rate 2', lr, epoch * 20 + step)
-        writer.add_scalar('Likelyhood', llhood, epoch * 20 + step)
+        writer.add_scalar('Learning rate 2', lr, epoch * 10 + step)
+        writer.add_scalar('Likelyhood', llhood, epoch * 10 + step)
     logger.info(f'Likelyhood is {llhood:.3f}')
     return split_all.cuda()
     

@@ -18,8 +18,8 @@ class WarmUpLR(_LRScheduler):
         """
         return [base_lr * self.last_epoch / (self.total_iters + 1e-8) for base_lr in self.base_lrs]
     
-def build_lrs(optimizer):
-    scheduler1 = WarmUpLR(optimizer, 100)
-    scheduler2 = CosineAnnealingLR(optimizer, T_max=100)
-    scheduler = SequentialLR(optimizer, schedulers=[scheduler1, scheduler2], milestones=[100])
+def build_lrs(optimizer, milestone, T_max):
+    scheduler1 = WarmUpLR(optimizer, milestone)
+    scheduler2 = CosineAnnealingLR(optimizer, T_max=T_max)
+    scheduler = SequentialLR(optimizer, schedulers=[scheduler1, scheduler2], milestones=[milestone])
     return scheduler

@@ -1,5 +1,5 @@
 img_size: 192
-n_env: 4
+n_env: 6
 data_path: ./datasets/mimic
 batch_size: 25
 batch_size_spl: 1000
