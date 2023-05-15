@@ -6,6 +6,10 @@ import torch.distributed as dist
 from sklearn.metrics import roc_auc_score, f1_score
 from utils.build_net import weight_init
 
+from sklearn.manifold import TSNE
+import numpy as np
+import matplotlib.pyplot as plt
+
 def train_cls_module(config, rank, epoch, net, split_all, loss_fn, train_loader, optimizer, lr_scheduler, scaler, logger, writer):
     net.train()
     if rank == 0:
@@ -89,6 +93,7 @@ def train_cls_module(config, rank, epoch, net, split_all, loss_fn, train_loader,
 def train_spl_module(epoch, net, loss_fn, env_loader, optimizer, lr_scheduler, logger, writer):
     net.apply(weight_init)
     net.train()
+    mu = torch.randn(loss_fn.n_envs, 128).cuda()
     for step in tqdm(range(10), desc=f'Spliting epoch {epoch}'):
         y_all = torch.tensor([]).cuda()
         for conf, h in env_loader:
@@ -96,8 +101,17 @@ def train_spl_module(epoch, net, loss_fn, env_loader, optimizer, lr_scheduler, l
             h = h.cuda(non_blocking=True)
             with autocast():
                 y = net(conf, h)
-                y_all = torch.cat((y_all, y), 0)
-        loss, llhood, split_all = loss_fn(y_all)
+                y_all = torch.cat((y_all, y), 0)        
+        loss, llhood, split_all, mu = loss_fn(y_all, mu)
+        
+        tsne = TSNE(n_components=2, init='pca', random_state=0)
+        result = tsne.fit_transform(y_all.cpu().detach().numpy())
+        labels = split_all.cpu().detach().numpy()
+        labels = labels.nonzero()[1]
+        plt.scatter(result[:,0],result[:,1],s=1,c=labels)
+        plt.savefig("./pic/" + str(epoch) + str(step) + ".png")
+        plt.close()
+        
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()

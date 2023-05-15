@@ -31,7 +31,7 @@ def main(rank, config):
     net_without_ddp = net
     net = DDP(net, rank)
     opt_cls = build_optimizer(net[0], lr=1e-4, weight_decay=0.05)
-    opt_spl = build_optimizer(net[1], lr=1e-4, weight_decay=0.05)
+    opt_spl = build_optimizer(net[1], lr=5e-5, weight_decay=0.05)
     lrs_cls = build_lrs(opt_cls, milestone=100, T_max=100)
     lrs_spl = build_lrs(opt_spl, milestone=10, T_max=10)
     scaler = amp.GradScaler()

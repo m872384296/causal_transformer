@@ -17,10 +17,12 @@ class decoder(nn.Module):
                                                 norm_first=False)
         decoder_norm = LayerNorm(1536, 1e-5)
         self.decoder = TransformerDecoder(decoder_layer, 6, decoder_norm)
+        self.feature = nn.Linear(1536, 128)
         
     @autocast()
     def forward(self, x, memory):
         with autograd.graph.save_on_cpu(pin_memory=True):
             x = self.embedding(x).unsqueeze(1)
             x = self.decoder(x, memory).squeeze(1)
+            x = self.feature(x)
         return x
