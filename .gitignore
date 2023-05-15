@@ -5,3 +5,4 @@ logs/
 !.gitkeep
 .ipynb_checkpoints/
 __pycache__/
+pic/
