@@ -52,8 +52,11 @@ class em_loss(torch.nn.Module):
             prev_mu = mu.clone()
             prev_cov = cov.clone()
             prev_pi = pi.clone()
+            print('start')
             h = MultivariateNormal(mu, cov)
+            print('middle')
             llhood = h.log_prob(x)
+            print('end')
             weighted_llhood = llhood + torch.log(pi)
             log_sum_lhood = torch.logsumexp(weighted_llhood, dim=1, keepdim=True)
             log_posterior = weighted_llhood - log_sum_lhood
@@ -62,9 +65,7 @@ class em_loss(torch.nn.Module):
             if torch.any(pi == 0):
                 pi = pi + eps
             mu = 1 * (torch.sum(posterior * x, dim=0) / pi) + 0 * prev_mu
-            print('start')
             cov = 1 * (torch.matmul((posterior * (x - mu)).permute(1, 2, 0), (x - mu).permute(1, 0, 2)) / pi.unsqueeze(2) + eps_cov) + 0 * prev_cov
-            print('done')
             pi = pi.squeeze() / x.shape[0]
             allclose = torch.allclose(mu, prev_mu) and torch.allclose(cov, prev_cov) and torch.allclose(pi, prev_pi)
             i += 1
