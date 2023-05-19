@@ -28,7 +28,7 @@ class irm_loss(torch.nn.Module):
             irm_risk_list.append(torch.sum(irm_risk ** 2))
         erm = erm_risk.sum()
         penalty = torch.stack(irm_risk_list).sum()
-        irm_risk_final = erm + 1e1 * penalty
+        irm_risk_final = erm + 0 * penalty
         # scale_multi = loss_scale(irm_risk_final, 50)
         # irm_risk_final *= scale_multi
         return irm_risk_final, erm, penalty
