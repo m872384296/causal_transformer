@@ -66,25 +66,32 @@ def train_cls_module(config, rank, epoch, net, split_all, loss_fn, train_loader,
         label_out = torch.zeros(config['world_size'] * label.shape[0]).cuda(rank)
         dist.all_gather_into_tensor(label_out, label.float())
         label_all = torch.cat((label_all, label_out), 0)
-        if loss_fn.num_classes == 1:
-            prob = torch.sigmoid(y_all).cpu().numpy()
-            pred = np.where(prob > 0.5, 1, 0)
-            f1 = f1_score(label_all.cpu().numpy(), pred)
-            auc = roc_auc_score(label_all.cpu().numpy(), prob)
-            if rank == 0:
-                writer.add_scalar('F1-score', f1, epoch * num_steps + n_iter)
-                writer.add_scalar('AUC', auc, epoch * num_steps + n_iter)
-        else:
-            pred = np.argmax(y_all.cpu().numpy(), axis=1)
-            acc = (pred == label_all.cpu().numpy()).sum() / label_all.shape[0]
-            if rank == 0:
-                writer.add_scalar('ACC', acc, epoch * num_steps + n_iter)
+        if n_iter % 10 == 0:
+            if loss_fn.num_classes == 1:
+                prob = torch.sigmoid(y_all).cpu().numpy()
+                pred = np.where(prob > 0.5, 1, 0)
+                f1 = f1_score(label_all.cpu().numpy(), pred)
+                auc = roc_auc_score(label_all.cpu().numpy(), prob)
+                if rank == 0:
+                    writer.add_scalar('F1-score', f1, epoch * num_steps + n_iter)
+                    writer.add_scalar('AUC', auc, epoch * num_steps + n_iter)
+            else:
+                pred = np.argmax(y_all.cpu().numpy(), axis=1)
+                acc = (pred == label_all.cpu().numpy()).sum() / label_all.shape[0]
+                if rank == 0:
+                    writer.add_scalar('ACC', acc, epoch * num_steps + n_iter)
     erm_mean = erm_all / len(train_loader.dataset)
     penalty_mean = penalty_all / len(train_loader.dataset)
     if loss_fn.num_classes == 1:
+        prob = torch.sigmoid(y_all).cpu().numpy()
+        pred = np.where(prob > 0.5, 1, 0)
+        f1 = f1_score(label_all.cpu().numpy(), pred)
+        auc = roc_auc_score(label_all.cpu().numpy(), prob)
         logger.info(f'F1-score for training of epoch {epoch} is {f1:.3f}')
         logger.info(f'AUC for training of epoch {epoch} is {auc:.3f}')
     else:
+        pred = np.argmax(y_all.cpu().numpy(), axis=1)
+        acc = (pred == label_all.cpu().numpy()).sum() / label_all.shape[0]
         logger.info(f'Acc for training of epoch {epoch} is {acc:.3f}')
     logger.info(f'ERM of epoch {epoch} is {erm_mean:.3f}')
     logger.info(f'Penalty of epoch {epoch} is {penalty_mean:.3f}')
@@ -144,24 +151,31 @@ def validate(config, rank, epoch, net, val_loader, logger, writer):
             label_out = torch.zeros(config['world_size'] * label.shape[0]).cuda(rank)
             dist.all_gather_into_tensor(label_out, label.float())
             label_all = torch.cat((label_all, label_out), 0)
-            if net.module.num_classes == 1:
-                prob = torch.sigmoid(y_all).detach().cpu().numpy()
-                pred = np.where(prob > 0.5, 1, 0)
-                f1 = f1_score(label_all.detach().cpu().numpy(), pred)
-                auc = roc_auc_score(label_all.detach().cpu().numpy(), prob)
-                if rank == 0:
-                    writer.add_scalar('val-F1-score', f1, epoch * num_steps + n_iter)
-                    writer.add_scalar('val-AUC', auc, epoch * num_steps + n_iter)
-            else:
-                pred = np.argmax(y_all.detach().cpu().numpy(), axis=1)
-                acc = (pred == label_all.detach().cpu().numpy()).sum() / label_all.shape[0]
-                if rank == 0:
-                    writer.add_scalar('val-ACC', acc, epoch * num_steps + n_iter)
+            if n_iter % 10 == 0:
+                if net.module.num_classes == 1:
+                    prob = torch.sigmoid(y_all).detach().cpu().numpy()
+                    pred = np.where(prob > 0.5, 1, 0)
+                    f1 = f1_score(label_all.detach().cpu().numpy(), pred)
+                    auc = roc_auc_score(label_all.detach().cpu().numpy(), prob)
+                    if rank == 0:
+                        writer.add_scalar('val-F1-score', f1, epoch * num_steps + n_iter)
+                        writer.add_scalar('val-AUC', auc, epoch * num_steps + n_iter)
+                else:
+                    pred = np.argmax(y_all.detach().cpu().numpy(), axis=1)
+                    acc = (pred == label_all.detach().cpu().numpy()).sum() / label_all.shape[0]
+                    if rank == 0:
+                        writer.add_scalar('val-ACC', acc, epoch * num_steps + n_iter)
         if net.module.num_classes == 1:
+            prob = torch.sigmoid(y_all).detach().cpu().numpy()
+            pred = np.where(prob > 0.5, 1, 0)
+            f1 = f1_score(label_all.detach().cpu().numpy(), pred)
+            auc = roc_auc_score(label_all.detach().cpu().numpy(), prob)
             logger.info(f'F1-score for validation of epoch {epoch} is {f1:.3f}')
             logger.info(f'AUC for validation of epoch {epoch} is {auc:.3f}')
             acc_or_auc = auc
         else:
+            pred = np.argmax(y_all.detach().cpu().numpy(), axis=1)
+            acc = (pred == label_all.detach().cpu().numpy()).sum() / label_all.shape[0]
             logger.info(f'Acc for validation of epoch {epoch} is {acc:.3f}')
             acc_or_auc = acc
         logger.info(f'Epoch {epoch} validating finished !!!')
