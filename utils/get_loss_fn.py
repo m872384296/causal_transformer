@@ -66,7 +66,7 @@ class em_loss(torch.nn.Module):
             pi = pi.squeeze() / x.shape[0]
             allclose = torch.allclose(mu, prev_mu) and torch.allclose(cov, prev_cov) and torch.allclose(pi, prev_pi)
             i += 1
-            max_iter = i > 10
+            max_iter = i > 5
             converged = allclose or max_iter
         scale_multi = loss_scale(log_sum_lhood.mean(), -50)
         loss = log_sum_lhood.mean() * scale_multi
