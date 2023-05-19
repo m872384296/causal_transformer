@@ -17,7 +17,7 @@ class decoder(nn.Module):
                                                 norm_first=False)
         decoder_norm = LayerNorm(1536, 1e-5)
         self.decoder = TransformerDecoder(decoder_layer, 6, decoder_norm)
-        self.feature = nn.Linear(1536, 128)
+        self.feature = nn.Linear(1536, 64)
         
     @autocast()
     def forward(self, x, memory):
