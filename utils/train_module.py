@@ -66,7 +66,7 @@ def train_cls_module(config, rank, epoch, net, split_all, loss_fn, train_loader,
         label_out = torch.zeros(config['world_size'] * label.shape[0]).cuda(rank)
         dist.all_gather_into_tensor(label_out, label.float())
         label_all = torch.cat((label_all, label_out), 0)
-        if n_iter % 10 == 0:
+        if (n_iter + 1) % 10 == 0:
             if loss_fn.num_classes == 1:
                 prob = torch.sigmoid(y_all).cpu().numpy()
                 pred = np.where(prob > 0.5, 1, 0)
@@ -151,7 +151,7 @@ def validate(config, rank, epoch, net, val_loader, logger, writer):
             label_out = torch.zeros(config['world_size'] * label.shape[0]).cuda(rank)
             dist.all_gather_into_tensor(label_out, label.float())
             label_all = torch.cat((label_all, label_out), 0)
-            if n_iter % 10 == 0:
+            if (n_iter + 1) % 10 == 0:
                 if net.module.num_classes == 1:
                     prob = torch.sigmoid(y_all).detach().cpu().numpy()
                     pred = np.where(prob > 0.5, 1, 0)
