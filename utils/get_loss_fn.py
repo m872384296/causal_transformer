@@ -62,7 +62,9 @@ class em_loss(torch.nn.Module):
             if torch.any(pi == 0):
                 pi = pi + eps
             mu = 1 * (torch.sum(posterior * x, dim=0) / pi) + 0 * prev_mu
+            print('start')
             cov = 1 * (torch.matmul((posterior * (x - mu)).permute(1, 2, 0), (x - mu).permute(1, 0, 2)) / pi.unsqueeze(2) + eps_cov) + 0 * prev_cov
+            print('done')
             pi = pi.squeeze() / x.shape[0]
             allclose = torch.allclose(mu, prev_mu) and torch.allclose(cov, prev_cov) and torch.allclose(pi, prev_pi)
             i += 1
