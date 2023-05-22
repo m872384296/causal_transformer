@@ -17,11 +17,11 @@ def train_cls_module(config, rank, epoch, net, split_all, loss_fn, train_loader,
     else:
         iterator = train_loader
     num_steps = len(train_loader)
-    label_all = torch.tensor([]).cuda(rank)
-    idx_all = torch.tensor([])
-    y_all = torch.tensor([]).cuda(rank).half()
+    label_all = torch.tensor([]).cuda(rank).long()
+    idx_all = torch.tensor([]).long()
+    y_all = torch.tensor([]).cuda(rank)
     conf_all = torch.tensor([])
-    h_all = torch.tensor([]).half()
+    h_all = torch.tensor([])
     erm_all = 0
     penalty_all = 0
     for n_iter, (img, label, conf, idx) in enumerate(iterator):
@@ -54,16 +54,17 @@ def train_cls_module(config, rank, epoch, net, split_all, loss_fn, train_loader,
         conf_out = torch.zeros(config['world_size'] * conf.shape[0], conf.shape[1]).cuda(rank)
         dist.all_gather_into_tensor(conf_out, conf.float())
         conf_all = torch.cat((conf_all, conf_out.cpu()), 0)
-        h_out = torch.zeros(config['world_size'] * h.shape[0], h.shape[1], h.shape[2]).cuda(rank).half()
-        dist.all_gather_into_tensor(h_out, h.half())
+        h_out = torch.zeros(config['world_size'] * h.shape[0], h.shape[1], h.shape[2]).cuda(rank)
+        dist.all_gather_into_tensor(h_out, h)
         h_all = torch.cat((h_all, h_out.cpu()), 0)
-        y_out = torch.zeros(config['world_size'] * y.shape[0], y.shape[1]).cuda(rank).half()
-        dist.all_gather_into_tensor(y_out, y.half())
+        y_out = torch.zeros(config['world_size'] * y.shape[0], y.shape[1]).cuda(rank)
+        dist.all_gather_into_tensor(y_out, y)
         y_all = torch.cat((y_all, y_out), 0)
         idx_out = torch.zeros(config['world_size'] * idx.shape[0]).cuda(rank).long()
         dist.all_gather_into_tensor(idx_out, idx)
         idx_all = torch.cat((idx_all, idx_out.cpu()), 0)
         label_out = torch.zeros(config['world_size'] * label.shape[0]).cuda(rank).long()
+        print(label.tyoe())
         dist.all_gather_into_tensor(label_out, label)
         label_all = torch.cat((label_all, label_out), 0)
         if (n_iter + 1) % 1 == 0:
@@ -102,13 +103,13 @@ def train_spl_module(epoch, net, loss_fn, env_loader, optimizer, lr_scheduler, l
     net.train()
     mu = torch.randn(loss_fn.n_envs, 128).cuda()
     for step in tqdm(range(10), desc=f'Spliting epoch {epoch}'):
-        y_all = torch.tensor([]).cuda()
+        y_all = torch.tensor([]).cuda().half()
         for conf, h in env_loader:
             conf = conf.cuda(non_blocking=True)
             h = h.cuda(non_blocking=True)
             with autocast():
                 y = net(conf, h)
-                y_all = torch.cat((y_all, y), 0)        
+            y_all = torch.cat((y_all, y.half()), 0)        
         loss, llhood, split_all, mu = loss_fn(y_all, mu)
         
         tsne = TSNE(n_components=2, init='pca', random_state=0)
