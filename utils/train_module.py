@@ -17,8 +17,8 @@ def train_cls_module(config, rank, epoch, net, split_all, loss_fn, train_loader,
     else:
         iterator = train_loader
     num_steps = len(train_loader)
-    label_all = torch.tensor([]).cuda(rank).long()
-    idx_all = torch.tensor([]).long()
+    label_all = torch.tensor([]).cuda(rank).int()
+    idx_all = torch.tensor([]).int()
     y_all = torch.tensor([]).cuda(rank).half()
     conf_all = torch.tensor([])
     h_all = torch.tensor([])
@@ -52,7 +52,7 @@ def train_cls_module(config, rank, epoch, net, split_all, loss_fn, train_loader,
             writer.add_scalar('ERM', erm_reduce, epoch * num_steps + n_iter)
             writer.add_scalar('Penalty', penalty_reduce, epoch * num_steps + n_iter)
         conf_out = torch.zeros(config['world_size'] * conf.shape[0], conf.shape[1]).cuda(rank)
-        dist.all_gather_into_tensor(conf_out, conf.float())
+        dist.all_gather_into_tensor(conf_out, conf)
         conf_all = torch.cat((conf_all, conf_out.cpu()), 0)
         h_out = torch.zeros(config['world_size'] * h.shape[0], h.shape[1], h.shape[2]).cuda(rank)
         dist.all_gather_into_tensor(h_out, h)
@@ -60,11 +60,10 @@ def train_cls_module(config, rank, epoch, net, split_all, loss_fn, train_loader,
         y_out = torch.zeros(config['world_size'] * y.shape[0], y.shape[1]).cuda(rank).half()
         dist.all_gather_into_tensor(y_out, y)
         y_all = torch.cat((y_all, y_out), 0)
-        idx_out = torch.zeros(config['world_size'] * idx.shape[0]).cuda(rank).long()
+        idx_out = torch.zeros(config['world_size'] * idx.shape[0]).cuda(rank).int()
         dist.all_gather_into_tensor(idx_out, idx)
         idx_all = torch.cat((idx_all, idx_out.cpu()), 0)
-        label_out = torch.zeros(config['world_size'] * label.shape[0]).cuda(rank).long()
-        print(label.type())
+        label_out = torch.zeros(config['world_size'] * label.shape[0]).cuda(rank).int()
         dist.all_gather_into_tensor(label_out, label)
         label_all = torch.cat((label_all, label_out), 0)
         if (n_iter + 1) % 1 == 0:
