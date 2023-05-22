@@ -21,7 +21,7 @@ def train_cls_module(config, rank, epoch, net, split_all, loss_fn, train_loader,
     idx_all = torch.tensor([]).int()
     y_all = torch.tensor([]).cuda(rank).half()
     conf_all = torch.tensor([])
-    h_all = torch.tensor([])
+    h_all = torch.tensor([]).half()
     erm_all = 0
     penalty_all = 0
     for n_iter, (img, label, conf, idx) in enumerate(iterator):
@@ -54,8 +54,8 @@ def train_cls_module(config, rank, epoch, net, split_all, loss_fn, train_loader,
         conf_out = torch.zeros(config['world_size'] * conf.shape[0], conf.shape[1]).cuda(rank)
         dist.all_gather_into_tensor(conf_out, conf)
         conf_all = torch.cat((conf_all, conf_out.cpu()), 0)
-        h_out = torch.zeros(config['world_size'] * h.shape[0], h.shape[1], h.shape[2]).cuda(rank)
-        dist.all_gather_into_tensor(h_out, h)
+        h_out = torch.zeros(config['world_size'] * h.shape[0], h.shape[1], h.shape[2]).cuda(rank).half()
+        dist.all_gather_into_tensor(h_out, h.half())
         h_all = torch.cat((h_all, h_out.cpu()), 0)
         y_out = torch.zeros(config['world_size'] * y.shape[0], y.shape[1]).cuda(rank).half()
         dist.all_gather_into_tensor(y_out, y)
