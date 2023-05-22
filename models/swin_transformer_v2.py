@@ -599,7 +599,6 @@ class SwinTransformerV2(nn.Module):
     def no_weight_decay_keywords(self):
         return {"cpb_mlp", "logit_scale", 'relative_position_bias_table'}
 
-    @autocast()
     def forward_features(self, x):
         x = self.patch_embed(x)
         if self.ape:
@@ -618,8 +617,6 @@ class SwinTransformerV2(nn.Module):
     @autocast()
     def forward(self, x):
         x, x_feature = self.forward_features(x)
-        print(x.type())
-        print(x_feature.type())
         x = self.head(x)
         return x, x_feature
 
