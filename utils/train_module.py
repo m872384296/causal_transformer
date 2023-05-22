@@ -64,7 +64,7 @@ def train_cls_module(config, rank, epoch, net, split_all, loss_fn, train_loader,
         dist.all_gather_into_tensor(idx_out, idx)
         idx_all = torch.cat((idx_all, idx_out.cpu()), 0)
         label_out = torch.zeros(config['world_size'] * label.shape[0]).cuda(rank).long()
-        print(label.tyoe())
+        print(label.type())
         dist.all_gather_into_tensor(label_out, label)
         label_all = torch.cat((label_all, label_out), 0)
         if (n_iter + 1) % 1 == 0:
