@@ -52,7 +52,7 @@ def main(rank, config):
         train_loader.sampler.set_epoch(epoch)
         logger.info('=' * 50)
         logger.info(f'Epoch {epoch} begin training and environment splitting......')
-        #conf, h, idx = train_cls_module(config, rank, epoch, net[0], split_all, irm_lossfn, train_loader, opt_cls, lrs_cls, scaler, logger, writer)
+        # conf, h, idx = train_cls_module(config, rank, epoch, net[0], split_all, irm_lossfn, train_loader, opt_cls, lrs_cls, scaler, logger, writer)
         conf = torch.randn(40624, 22)
         h = torch.randn(40624, 144, 1536)
         idx = torch.arange(40624)

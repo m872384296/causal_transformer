@@ -100,7 +100,7 @@ def train_cls_module(config, rank, epoch, net, split_all, loss_fn, train_loader,
 def train_spl_module(epoch, net, loss_fn, env_loader, optimizer, lr_scheduler, logger, writer):
     net.apply(weight_init)
     net.train()
-    mu = torch.randn(loss_fn.n_envs, 64).cuda()
+    mu = torch.randn(loss_fn.n_envs, 128).cuda()
     for step in tqdm(range(10), desc=f'Spliting epoch {epoch}'):
         y_all = torch.tensor([]).cuda()
         for conf, h in env_loader:
