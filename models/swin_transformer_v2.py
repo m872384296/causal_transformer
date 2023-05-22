@@ -617,9 +617,9 @@ class SwinTransformerV2(nn.Module):
     @autocast()
     def forward(self, x):
         x, x_feature = self.forward_features(x)
-        x = self.head(x)
         print(x.type())
         print(x_feature.type())
+        x = self.head(x)
         return x, x_feature
 
     def flops(self):
