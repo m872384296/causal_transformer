@@ -55,6 +55,7 @@ def train_cls_module(config, rank, epoch, net, split_all, loss_fn, train_loader,
         dist.all_gather_into_tensor(conf_out, conf.float())
         conf_all = torch.cat((conf_all, conf_out.cpu()), 0)
         h_out = torch.zeros(config['world_size'] * h.shape[0], h.shape[1], h.shape[2]).cuda(rank).half()
+        print(h.type())
         dist.all_gather_into_tensor(h_out, h)
         h_all = torch.cat((h_all, h_out.cpu()), 0)
         y_out = torch.zeros(config['world_size'] * y.shape[0], y.shape[1]).cuda(rank).half()
