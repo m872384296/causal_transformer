@@ -108,7 +108,6 @@ def train_spl_module(epoch, net, loss_fn, env_loader, optimizer, lr_scheduler, l
             h = h.cuda(non_blocking=True)
             with autocast():
                 y = net(conf, h)
-                print(y.type())
             y_all = torch.cat((y_all, y), 0)        
         loss, llhood, split_all, mu = loss_fn(y_all, mu)
         
