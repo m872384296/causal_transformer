@@ -19,7 +19,7 @@ def train_cls_module(config, rank, epoch, net, split_all, loss_fn, train_loader,
     num_steps = len(train_loader)
     label_all = torch.tensor([]).cuda(rank).long()
     idx_all = torch.tensor([]).long()
-    y_all = torch.tensor([]).cuda(rank)
+    y_all = torch.tensor([]).cuda(rank).half()
     conf_all = torch.tensor([])
     h_all = torch.tensor([])
     erm_all = 0
@@ -57,8 +57,7 @@ def train_cls_module(config, rank, epoch, net, split_all, loss_fn, train_loader,
         h_out = torch.zeros(config['world_size'] * h.shape[0], h.shape[1], h.shape[2]).cuda(rank)
         dist.all_gather_into_tensor(h_out, h)
         h_all = torch.cat((h_all, h_out.cpu()), 0)
-        y_out = torch.zeros(config['world_size'] * y.shape[0], y.shape[1]).cuda(rank)
-        print(y.type())
+        y_out = torch.zeros(config['world_size'] * y.shape[0], y.shape[1]).cuda(rank).half()
         dist.all_gather_into_tensor(y_out, y)
         y_all = torch.cat((y_all, y_out), 0)
         idx_out = torch.zeros(config['world_size'] * idx.shape[0]).cuda(rank).long()
@@ -110,7 +109,8 @@ def train_spl_module(epoch, net, loss_fn, env_loader, optimizer, lr_scheduler, l
             h = h.cuda(non_blocking=True)
             with autocast():
                 y = net(conf, h)
-            y_all = torch.cat((y_all, y.half()), 0)        
+                print(y.type())
+            y_all = torch.cat((y_all, y), 0)        
         loss, llhood, split_all, mu = loss_fn(y_all, mu)
         
         tsne = TSNE(n_components=2, init='pca', random_state=0)
