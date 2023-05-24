@@ -178,9 +178,9 @@ class WindowAttention(nn.Module):
         return x
     
     def forward(self, x, mask=None):
-        attn, attn_f, B_, N, C, v = forward_features(x, mask)
-        x = mid(attn, B_, N, C, v)
-        x_feature = mid(attn_f, B_, N, C, v)
+        attn, attn_f, B_, N, C, v = self.forward_features(x, mask)
+        x = self.mid(attn, B_, N, C, v)
+        x_feature = self.mid(attn_f, B_, N, C, v)
         return x, x_feature
 
     def extra_repr(self) -> str:
@@ -312,9 +312,9 @@ class SwinTransformerBlock(nn.Module):
         return x
     
     def forward(self, x):
-        attn_windows, attn_windows_f, B, H, W, C, shortcut = forward_features(x)
-        x = mid(attn_windows, B, H, W, C, shortcut)
-        x_feature = mid(attn_windows_f, B, H, W, C, shortcut)
+        attn_windows, attn_windows_f, B, H, W, C, shortcut = self.forward_features(x)
+        x = self.mid(attn_windows, B, H, W, C, shortcut)
+        x_feature = self.mid(attn_windows_f, B, H, W, C, shortcut)
         return x, x_feature
 
     def extra_repr(self) -> str:
