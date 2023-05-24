@@ -167,9 +167,9 @@ class WindowAttention(nn.Module):
         else:
             attn = self.softmax(attn)
             attn_f = self.softmax(-attn)            
-        return attn, attn_f
+        return attn, attn_f, B_, N, C, v
     
-    def mid(self, attn):
+    def mid(self, attn, B_, N, C, v):
         attn = self.attn_drop(attn)
 
         x = (attn @ v).transpose(1, 2).reshape(B_, N, C)
@@ -178,9 +178,9 @@ class WindowAttention(nn.Module):
         return x
     
     def forward(self, x, mask=None):
-        attn, attn_f = forward_features(x, mask)
-        x = mid(attn)
-        x_feature = mid(attn_f)
+        attn, attn_f, B_, N, C, v = forward_features(x, mask)
+        x = mid(attn, B_, N, C, v)
+        x_feature = mid(attn_f, B_, N, C, v)
         return x, x_feature
 
     def extra_repr(self) -> str:
@@ -292,9 +292,9 @@ class SwinTransformerBlock(nn.Module):
 
         # W-MSA/SW-MSA
         attn_windows, attn_windows_f = self.attn(x_windows, mask=self.attn_mask)  # nW*B, window_size*window_size, C
-        return attn_windows, attn_windows_f
+        return attn_windows, attn_windows_f, B, H, W, C, shortcut
     
-    def mid(self, attn_windows):
+    def mid(self, attn_windows, B, H, W, C, shortcut):
         # merge windows
         attn_windows = attn_windows.view(-1, self.window_size, self.window_size, C)
         shifted_x = window_reverse(attn_windows, self.window_size, H, W)  # B H' W' C
@@ -312,9 +312,9 @@ class SwinTransformerBlock(nn.Module):
         return x
     
     def forward(self, x):
-        attn_windows, attn_windows_f = forward_features(x)
-        x = mid(attn_windows)
-        x_feature = mid(attn_windows_f)
+        attn_windows, attn_windows_f, B, H, W, C, shortcut = forward_features(x)
+        x = mid(attn_windows, B, H, W, C, shortcut)
+        x_feature = mid(attn_windows_f, B, H, W, C, shortcut)
         return x, x_feature
 
     def extra_repr(self) -> str:
