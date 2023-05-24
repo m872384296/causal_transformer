@@ -1,11 +1,11 @@
-img_size: 384
-n_env: 3
+img_size: 192
+n_env: 10
 data_path: ./datasets/mimic
-batch_size: 10
+batch_size: 25
 batch_size_spl: 5000
 mean: null
 std: null
 resume_epoch: null
-resume_path: ./checkpoints
+resume_path: /cmach-data/maqin/checkpoints
 pretrained_path: ./pretrain_models/swinv2_large_patch4_window12to24_192to384_22kto1k_ft.pth
 log_path: ./logs
