@@ -14,7 +14,7 @@ def main(args):
 if __name__ == '__main__':    
     parser = argparse.ArgumentParser()
     parser.add_argument('--cfg', type=str, default='./configs/swin384.yaml', help='load the config file')
-    parser.add_argument('--chexpert_root', type=str, default='/data/chexpertchestxrays-u20210408', help='the path where your chexpert cxr files located')
+    parser.add_argument('--chexpert_root', type=str, default='/data', help='the path where your chexpert cxr files located')
     parser.add_argument('--test_path', type=str, default='./datasets/chexpert/test', help='the path where the testset you want to put')
     args = parser.parse_args()
     main(args)

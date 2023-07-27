@@ -5,8 +5,8 @@ import os
 from tqdm import tqdm
 
 def create_dataset(cxr_root, mimic_root, target_path, logger):
-    cxr_path = os.path.join(cxr_root, 'files/mimic-cxr-jpg/2.0.0/')
-    physio_path = os.path.join(cxr_root, 'files/mimic-cxr-jpg/2.0.0/files/')
+    cxr_path = os.path.join(cxr_root, 'physionet.org/files/mimic-cxr-jpg/2.0.0/')
+    physio_path = os.path.join(cxr_root, 'physionet.org/files/mimic-cxr-jpg/2.0.0/files/')
     logger.info('Loading data files......')
     label = pd.read_csv(cxr_path + 'mimic-cxr-2.0.0-chexpert.csv.gz', compression='gzip')
     meta = pd.read_csv(cxr_path + 'mimic-cxr-2.0.0-metadata.csv.gz', compression='gzip')

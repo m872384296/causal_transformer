@@ -14,7 +14,7 @@ def main(args):
 if __name__ == '__main__':    
     parser = argparse.ArgumentParser()
     parser.add_argument('--cfg', type=str, default='./configs/swin384.yaml', help='load the config file')
-    parser.add_argument('--cxr_root', type=str, default='/data/physionet.org', help='the path where your mimic cxr files located')
+    parser.add_argument('--cxr_root', type=str, default='/data', help='the path where your mimic cxr files located')
     parser.add_argument('--mimic_root', type=str, default='/data/mimic_iv', help='the path where your mimic iv gzip files located')
     args = parser.parse_args()
     main(args)
