@@ -8,7 +8,7 @@ import torch.nn.functional as F
 import torch.distributed as dist
 from tqdm import tqdm
 from multiprocessing import cpu_count
-from torch.cuda import amp, device_count
+from torch.cuda import device_count
 from torch.utils.tensorboard import SummaryWriter
 from utils.build_data import build_trainloader, build_envloader
 from utils.build_net import build_all_net
