@@ -1,4 +1,4 @@
-from models.swin_transformer_v2 import SwinTransformerV2
+from models.swin_transformer_v2_f import SwinTransformerV2
 from models.transformer_decoder import decoder
 from torch import nn
 
@@ -15,18 +15,6 @@ def build_swinv2(config, num_classes):
 
 def build_all_net(config, init_trainloader):
     cls_net = build_swinv2(config, init_trainloader.num_classes)[0]
-    spl_net = decoder(init_trainloader.dim_conf)
+    spl_net = decoder(config, init_trainloader.dim_conf)
     net = nn.ModuleList([cls_net, spl_net])
     return net
-
-def weight_init(m):
-    if isinstance(m, nn.Linear):
-        nn.init.xavier_normal_(m.weight)
-        nn.init.constant_(m.bias, 0)
-    elif isinstance(m, nn.MultiheadAttention):
-        nn.init.xavier_normal_(m.in_proj_weight)
-        nn.init.constant_(m.in_proj_bias, 0)
-    elif isinstance(m, nn.LayerNorm):
-        nn.init.constant_(m.weight, 1)
-        nn.init.constant_(m.bias, 0)
-    

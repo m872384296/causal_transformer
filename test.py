@@ -24,9 +24,13 @@ def main(args):
         n_cpus = args.cpu_count
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     logger = create_logger(output_dir=config['log_path'], name='Testing')
-    logger.info('Analysing images......')
-    mean, std = get_test_mean_std(args.test_path, n_cpus)
-    logger.info('Analysing done !!!')
+    if args.mean_std:
+        mean, std = args.mean_std
+        mean, std = [mean], [std]
+    else:
+        logger.info('Analysing images......')
+        mean, std = get_test_mean_std(args.test_path, n_cpus)
+        logger.info('Analysing done !!!')
     init_testloader = build_testloader(config, mean[0], std[0], args.batch_size)
     test_loader = init_testloader.test_loader(args.test_path, n_cpus)
     cls_net = build_swinv2(config, init_testloader.num_classes)
@@ -40,7 +44,7 @@ def main(args):
         path_all = []
         for img, path_img in tqdm(test_loader, desc='Testing'):
             img = img.to(device)
-            y, _ = net(img)
+            y, _, _ = net(img)
             y_all = torch.cat((y_all, y), 0)
             path_all.extend(path_img)
     logger.info('Testing finished !!!')
@@ -82,10 +86,11 @@ def main(args):
     
 if __name__ == '__main__':    
     parser = argparse.ArgumentParser()
-    parser.add_argument('--cfg', type=str, default='./configs/mimic.yaml', help='load the config file')
+    parser.add_argument('--cfg', type=str, default='./configs/swin384.yaml', help='load the config file')
     parser.add_argument('--label_file', type=str, default='', help='for example ./datasets/mimic/test/label.csv, default means only predict and do not calculate accuracy')
     parser.add_argument('--test_path', type=str, default='./datasets/mimic/test', help='test set path')
     parser.add_argument('--ckpt_file', type=str, default='./checkpoints/ckpt_best.pth', help='checkpoint file path')
+    parser.add_argument('--mean_std', type=float, nargs='+', default=None, help='input mean and standard deviation if available, for example: 0.483 0.298 or 0.506 0.290')
     parser.add_argument('--cpu_count', type=int, default=None, help='CPU counts, default None means all CPUs')
     parser.add_argument('--batch_size', type=int, default=25, help='setting batch size')
     parser.add_argument('--binary_threshold', type=float, default=None, help='setting threshold for binary classification')

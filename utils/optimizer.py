@@ -1,5 +1,10 @@
 from torch import optim as optim
 
+def build_all_opt(net):
+    opt_cls = build_optimizer(net[0], lr=1e-4, weight_decay=0.05)
+    opt_spl = build_optimizer(net[1], lr=1e-4, weight_decay=0.05)
+    return opt_cls, opt_spl
+
 def build_optimizer(model, lr=1e-4, weight_decay=0.05):
     """
     Build optimizer, set weight decay of normalization to 0 by default.

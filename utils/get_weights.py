@@ -2,19 +2,19 @@ import os
 import torch
 import shutil
 
-def load_checkpoint(config, model, opt_cls, lrs_cls, opt_spl, lrs_spl, scaler, map_location, logger):
+def load_checkpoint(config, model, opt, lrs, scaler, map_location, logger):
     logger.info(f"==============> Resuming from {config['resume_path']}....................")
     epoch = config['resume_epoch']
     checkpoint = torch.load(os.path.join(config['resume_path'], f'ckpt_epoch_{epoch}.pth'), map_location=map_location)
     msg = model.load_state_dict(checkpoint['model'], strict=False)
     logger.info(msg)
-    if 'opt_cls' in checkpoint and 'lrs_cls' and 'opt_spl' in checkpoint and 'lrs_spl' in checkpoint:
-        opt_cls.load_state_dict(checkpoint['opt_cls'])
-        lrs_cls.load_state_dict(checkpoint['lrs_cls'])
-        opt_spl.load_state_dict(checkpoint['opt_spl'])
-        lrs_spl.load_state_dict(checkpoint['lrs_spl'])
-        scaler.load_state_dict(checkpoint['scaler'])
-        logger.info(f"=> loaded successfully (epoch {config['resume_epoch']})")
+    opt[0].load_state_dict(checkpoint['opt_cls'])
+    lrs[0].load_state_dict(checkpoint['lrs_cls'])
+    scaler[0].load_state_dict(checkpoint['scaler_cls'])
+    opt[1].load_state_dict(checkpoint['opt_spl'])
+    lrs[1].load_state_dict(checkpoint['lrs_spl'])
+    scaler[1].load_state_dict(checkpoint['scaler_spl'])
+    logger.info(f"=> loaded successfully (epoch {config['resume_epoch']})")
             
     del checkpoint
     torch.cuda.empty_cache()
@@ -117,13 +117,14 @@ def load_pretrained(config, model, map_location, logger):
     del checkpoint
     torch.cuda.empty_cache()
 
-def save_checkpoint(epoch, config, model, opt_cls, lrs_cls, opt_spl, lrs_spl, scaler, is_best, logger):
+def save_checkpoint(epoch, config, model, opt, lrs, scaler, is_best, logger):
     save_state = {'model': model.state_dict(),
-                  'opt_cls': opt_cls.state_dict(),
-                  'lrs_cls': lrs_cls.state_dict(),
-                  'opt_spl': opt_spl.state_dict(),
-                  'lrs_spl': lrs_spl.state_dict(),
-                  'scaler': scaler.state_dict()}
+                  'opt_cls': opt[0].state_dict(),
+                  'lrs_cls': lrs[0].state_dict(),
+                  'scaler_cls': scaler[0].state_dict(),
+                  'opt_spl': opt[1].state_dict(),
+                  'lrs_spl': lrs[1].state_dict(),
+                  'scaler_spl': scaler[1].state_dict()}
     save_path = os.path.join(config['resume_path'], f'ckpt_epoch_{epoch}.pth')
     logger.info(f"{save_path} saving......")
     torch.save(save_state, save_path)

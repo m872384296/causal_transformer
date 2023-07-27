@@ -13,8 +13,7 @@ class train_dataset(Dataset):
     def __init__(self, root, train=True, transform=None):
         self.data_dir = root
         self.train = train
-        self.transform = transform
-        
+        self.transform = transform        
         tr_lab_dir = os.path.join(self.data_dir, 'train/label.txt')
         val_lab_dir = os.path.join(self.data_dir, 'val/label.txt')
         label_train = np.loadtxt(tr_lab_dir, dtype=str)
@@ -26,7 +25,7 @@ class train_dataset(Dataset):
         tr_conf_dir = os.path.join(self.data_dir, 'train/confounder.csv')
         self.conf_train = pd.read_csv(tr_conf_dir)
         numeric_features = self.conf_train.dtypes[self.conf_train.dtypes != 'object'].index
-        self.conf_train[numeric_features] = stats.zscore(self.conf_train[numeric_features])
+        self.conf_train[numeric_features] = stats.zscore(self.conf_train[numeric_features], nan_policy='omit')
         self.conf_train[numeric_features] = self.conf_train[numeric_features].fillna(0)
         self.conf_train = pd.get_dummies(self.conf_train, drop_first=True).to_numpy()
 
@@ -52,7 +51,6 @@ class train_dataset(Dataset):
     def __len__(self):
         if self.train:                
             length = len(self.label_train)
-            # length = 10000
         else:
             length = len(self.label_val)
         return length
@@ -85,12 +83,12 @@ class env_dataset(Dataset):
         loc = torch.nonzero(self.idx==index)[0].squeeze()
         conf = self.conf[loc]
         h = self.h[loc]
-        return conf, h
+        return conf, h, torch.tensor(index).int()
     
     def __len__(self):
         length = torch.max(self.idx) + 1
         return length.int()
-
+    
 class build_trainloader:
     def __init__(self, rank, config):
         self.batch_size = config['batch_size']
@@ -169,11 +167,13 @@ class build_testloader:
     
 def build_envloader(config, conf, h, idx):
     env_set = env_dataset(conf, h, idx)
+    env_sampler = DistributedSampler(env_set)
     env_loader = DataLoader(
         env_set, 
         batch_size=config['batch_size_spl'], 
         num_workers=config['num_workers'],
         pin_memory=True,
-        persistent_workers=True
+        persistent_workers=True,
+        sampler=env_sampler
     )
     return env_loader
