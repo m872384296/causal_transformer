@@ -19,7 +19,7 @@ from utils.optimizer import build_all_opt
 from utils.lr_scheduler import build_all_lrs
 from utils.scaler import build_all_scaler
 from utils.build_DDP import DDP, run, setup, cleanup
-from utils.train_module import train_cls_module, train_spl_module, validate
+from utils.train_module import train_cls_module, train_spl_module, validate_module
 
 def main(rank, config):
     setup(rank, config['world_size'])
@@ -55,7 +55,7 @@ def main(rank, config):
         env_loader = build_envloader(config, conf, h, idx)
         split_all = train_spl_module(config, rank, epoch, net[1], nce_lossfn, env_loader, opt[1], lrs[1], scaler[1], logger, writer)
         logger.info(f'Epoch {epoch} training and environment splitting finished !!!')
-        acc_or_auc = validate(config, rank, epoch, net[0], val_loader, logger, writer)
+        acc_or_auc = validate_module(config, rank, epoch, net[0], val_loader, logger, writer)
         is_best = acc_or_auc > max_accuracy
         if rank == 0:
             save_checkpoint(epoch, config, net_without_ddp, opt, lrs, scaler, is_best, logger)

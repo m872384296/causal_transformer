@@ -46,9 +46,9 @@ def train_cls_module(config, rank, epoch, net, split_all, loss_fn, train_loader,
         erm_all += erm.item() * label.shape[0]
         penalty_all += penalty.item() * label.shape[0]
         if rank == 0:
-            writer.add_scalar('Learning rate 1', lr, epoch * num_steps + n_iter)
-            writer.add_scalar('ERM', erm_reduce, epoch * num_steps + n_iter)
-            writer.add_scalar('Penalty', penalty_reduce, epoch * num_steps + n_iter)
+            writer.add_scalar('plot/Learning rate 1', lr, epoch * num_steps + n_iter)
+            writer.add_scalar('plot/ERM', erm_reduce, epoch * num_steps + n_iter)
+            writer.add_scalar('plot/Penalty', penalty_reduce, epoch * num_steps + n_iter)
         conf_out = torch.zeros(config['world_size'] * conf.shape[0], conf.shape[1]).cuda(rank)
         dist.all_gather_into_tensor(conf_out, conf)
         conf_all = torch.cat((conf_all, conf_out.cpu()), 0)
@@ -71,13 +71,13 @@ def train_cls_module(config, rank, epoch, net, split_all, loss_fn, train_loader,
                 f1 = f1_score(label_all.cpu().numpy(), pred)
                 auc = roc_auc_score(label_all.cpu().numpy(), prob)
                 if rank == 0:
-                    writer.add_scalar('F1-score', f1, epoch * num_steps + n_iter)
-                    writer.add_scalar('AUC', auc, epoch * num_steps + n_iter)
+                    writer.add_scalar('plot/F1-score', f1, epoch * num_steps + n_iter)
+                    writer.add_scalar('plot/AUC', auc, epoch * num_steps + n_iter)
             else:
                 pred = np.argmax(y_all.cpu().numpy(), axis=1)
                 acc = (pred == label_all.cpu().numpy()).sum() / label_all.shape[0]
                 if rank == 0:
-                    writer.add_scalar('ACC', acc, epoch * num_steps + n_iter)
+                    writer.add_scalar('plot/ACC', acc, epoch * num_steps + n_iter)
     erm_mean = erm_all / len(train_loader.dataset)
     penalty_mean = penalty_all / len(train_loader.dataset)
     if loss_fn.num_classes == 1:
@@ -127,8 +127,8 @@ def train_spl_module(config, rank, epoch, net, loss_fn, env_loader, optimizer, l
         loss_all += loss.item() * idx.shape[0]
         if (n_iter + 1) % 1 == 0:
             if rank == 0:
-                writer.add_scalar('Learning rate 2', lr, epoch * num_steps + n_iter)
-                writer.add_scalar('NCE', loss_reduce, epoch * num_steps + n_iter)
+                writer.add_scalar('plot/Learning rate 2', lr, epoch * num_steps + n_iter)
+                writer.add_scalar('plot/NCE', loss_reduce, epoch * num_steps + n_iter)
         y_out = torch.zeros(config['world_size'] * y.shape[0], y.shape[1]).cuda(rank).half()
         dist.all_gather_into_tensor(y_out, y.half())
         y_all = torch.cat((y_all, y_out.cpu()), 0)
@@ -149,7 +149,7 @@ def train_spl_module(config, rank, epoch, net, loss_fn, env_loader, optimizer, l
     dist.broadcast(split, 0)
     return split
     
-def validate(config, rank, epoch, net, val_loader, logger, writer):
+def validate_module(config, rank, epoch, net, val_loader, logger, writer):
     logger.info(f'Epoch {epoch} begin validating......')
     net.eval()
     if rank == 0:
@@ -178,13 +178,13 @@ def validate(config, rank, epoch, net, val_loader, logger, writer):
                     f1 = f1_score(label_all.detach().cpu().numpy(), pred)
                     auc = roc_auc_score(label_all.detach().cpu().numpy(), prob)
                     if rank == 0:
-                        writer.add_scalar('val-F1-score', f1, epoch * num_steps + n_iter)
-                        writer.add_scalar('val-AUC', auc, epoch * num_steps + n_iter)
+                        writer.add_scalar('plot/val-F1-score', f1, epoch * num_steps + n_iter)
+                        writer.add_scalar('plot/val-AUC', auc, epoch * num_steps + n_iter)
                 else:
                     pred = np.argmax(y_all.detach().cpu().numpy(), axis=1)
                     acc = (pred == label_all.detach().cpu().numpy()).sum() / label_all.shape[0]
                     if rank == 0:
-                        writer.add_scalar('val-ACC', acc, epoch * num_steps + n_iter)
+                        writer.add_scalar('plot/val-ACC', acc, epoch * num_steps + n_iter)
         if net.module.num_classes == 1:
             prob = torch.sigmoid(y_all).detach().cpu().numpy()
             pred = np.where(prob > 0.5, 1, 0)
