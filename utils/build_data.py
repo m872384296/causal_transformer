@@ -32,16 +32,16 @@ class train_dataset(Dataset):
     def __getitem__(self, index):
         if self.train:
             path_img = os.path.join(self.data_dir, 'train/' + str(index) + '.jpg')
-            label = torch.tensor(self.label_train[index]).int()
-            conf = torch.tensor(self.conf_train[index]).float()
+            label = self.label_train[index]
+            conf = self.conf_train[index].astype('single')
             img = Image.open(path_img)
             img = img.convert('RGB')
             if self.transform is not None:
                 img = self.transform(img)
-            return img, label, conf, torch.tensor(index).int()
+            return img, label, conf, index
         else:
             path_img = os.path.join(self.data_dir, 'val/' + str(index) + '.jpg')
-            label = torch.tensor(self.label_val[index])
+            label = self.label_val[index]
             img = Image.open(path_img)
             img = img.convert('RGB')
             if self.transform is not None: 
@@ -83,7 +83,7 @@ class env_dataset(Dataset):
         loc = torch.nonzero(self.idx==index)[0].squeeze()
         conf = self.conf[loc]
         h = self.h[loc]
-        return conf, h, torch.tensor(index).int()
+        return conf, h, index
     
     def __len__(self):
         length = torch.max(self.idx) + 1

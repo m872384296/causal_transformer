@@ -15,11 +15,11 @@ def train_cls_module(config, rank, epoch, net, split_all, loss_fn, train_loader,
     else:
         iterator = train_loader
     num_steps = len(train_loader)
-    label_all = torch.tensor([]).cuda(rank).int()
-    idx_all = torch.tensor([]).int()
-    y_all = torch.tensor([]).cuda(rank).half()
+    label_all = torch.tensor([], dtype=torch.int8).cuda(rank)
+    idx_all = torch.tensor([], dtype=torch.long)
+    y_all = torch.tensor([], dtype=torch.half).cuda(rank)
     conf_all = torch.tensor([])
-    h_all = torch.tensor([]).half()
+    h_all = torch.tensor([], dtype=torch.half)
     erm_all = 0
     penalty_all = 0
     for n_iter, (img, label, conf, idx) in enumerate(iterator):
@@ -52,16 +52,16 @@ def train_cls_module(config, rank, epoch, net, split_all, loss_fn, train_loader,
         conf_out = torch.zeros(config['world_size'] * conf.shape[0], conf.shape[1]).cuda(rank)
         dist.all_gather_into_tensor(conf_out, conf)
         conf_all = torch.cat((conf_all, conf_out.cpu()), 0)
-        h_out = torch.zeros(config['world_size'] * h.shape[0], h.shape[1], h.shape[2]).cuda(rank).half()
+        h_out = torch.zeros(config['world_size'] * h.shape[0], h.shape[1], h.shape[2], dtype=torch.half).cuda(rank)
         dist.all_gather_into_tensor(h_out, h.half())
         h_all = torch.cat((h_all, h_out.cpu()), 0)
-        y_out = torch.zeros(config['world_size'] * y.shape[0], y.shape[1]).cuda(rank).half()
+        y_out = torch.zeros(config['world_size'] * y.shape[0], y.shape[1], dtype=torch.half).cuda(rank)
         dist.all_gather_into_tensor(y_out, y)
         y_all = torch.cat((y_all, y_out), 0)
-        idx_out = torch.zeros(config['world_size'] * idx.shape[0]).cuda(rank).int()
+        idx_out = torch.zeros(config['world_size'] * idx.shape[0], dtype=torch.long).cuda(rank)
         dist.all_gather_into_tensor(idx_out, idx)
         idx_all = torch.cat((idx_all, idx_out.cpu()), 0)
-        label_out = torch.zeros(config['world_size'] * label.shape[0]).cuda(rank).int()
+        label_out = torch.zeros(config['world_size'] * label.shape[0], dtype=torch.int8).cuda(rank)
         dist.all_gather_into_tensor(label_out, label)
         label_all = torch.cat((label_all, label_out), 0)
         if (n_iter + 1) % 1 == 0:
@@ -102,8 +102,8 @@ def train_spl_module(config, rank, epoch, net, loss_fn, env_loader, optimizer, l
     else:
         iterator = env_loader
     num_steps = len(env_loader)
-    idx_all = torch.tensor([]).int()
-    y_all = torch.tensor([]).half()
+    idx_all = torch.tensor([], dtype=torch.long)
+    y_all = torch.tensor([], dtype=torch.half)
     loss_all = 0
     for n_iter, (conf, h, idx) in enumerate(iterator):
         conf = conf.cuda(rank, non_blocking=True)
@@ -129,15 +129,15 @@ def train_spl_module(config, rank, epoch, net, loss_fn, env_loader, optimizer, l
             if rank == 0:
                 writer.add_scalar('plot/Learning rate 2', lr, epoch * num_steps + n_iter)
                 writer.add_scalar('plot/NCE', loss_reduce, epoch * num_steps + n_iter)
-        y_out = torch.zeros(config['world_size'] * y.shape[0], y.shape[1]).cuda(rank).half()
+        y_out = torch.zeros(config['world_size'] * y.shape[0], y.shape[1], dtype=torch.half).cuda(rank)
         dist.all_gather_into_tensor(y_out, y.half())
         y_all = torch.cat((y_all, y_out.cpu()), 0)
-        idx_out = torch.zeros(config['world_size'] * idx.shape[0]).cuda(rank).int()
+        idx_out = torch.zeros(config['world_size'] * idx.shape[0], dtype=torch.long).cuda(rank)
         dist.all_gather_into_tensor(idx_out, idx)
         idx_all = torch.cat((idx_all, idx_out.cpu()), 0)
     loss_mean = loss_all / len(env_loader.dataset)
     logger.info(f'NCE of epoch {epoch} is {loss_mean:.3f}')   
-    split = torch.zeros(torch.max(idx_all)+1, config['n_env']).cuda(rank).long()
+    split = torch.zeros(torch.max(idx_all)+1, config['n_env'], dtype=torch.long).cuda(rank)
     if rank == 0:
         pca = PCA(n_components=128)
         y_pca = pca.fit_transform(y_all.numpy())
@@ -158,18 +158,18 @@ def validate_module(config, rank, epoch, net, val_loader, logger, writer):
         iterator = val_loader
     num_steps = len(val_loader)
     with torch.no_grad():
-        label_all = torch.tensor([]).cuda(rank)
-        y_all = torch.tensor([]).cuda(rank)
+        label_all = torch.tensor([], dtype=torch.int8).cuda(rank)
+        y_all = torch.tensor([], dtype=torch.half).cuda(rank)
         for n_iter, (img, label) in enumerate(iterator):
             img = img.cuda(rank, non_blocking=True)
             label = label.cuda(rank, non_blocking=True)
             with autocast():
                 y, _, _ = net(img)
-            y_out = torch.zeros(config['world_size'] * y.shape[0], y.shape[1]).cuda(rank)
-            dist.all_gather_into_tensor(y_out, y.float())
+            y_out = torch.zeros(config['world_size'] * y.shape[0], y.shape[1], dtype=torch.half).cuda(rank)
+            dist.all_gather_into_tensor(y_out, y)
             y_all = torch.cat((y_all, y_out), 0)
-            label_out = torch.zeros(config['world_size'] * label.shape[0]).cuda(rank)
-            dist.all_gather_into_tensor(label_out, label.float())
+            label_out = torch.zeros(config['world_size'] * label.shape[0], dtype=torch.int8).cuda(rank)
+            dist.all_gather_into_tensor(label_out, label)
             label_all = torch.cat((label_all, label_out), 0)
             if (n_iter + 1) % 1 == 0:
                 if net.module.num_classes == 1:
