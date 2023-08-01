@@ -173,7 +173,7 @@ def validate_module(config, rank, epoch, net, val_loader, logger, writer):
                 if net.module.num_classes == 1:
                     prob = torch.sigmoid(y_all).detach().cpu().numpy()
                     pr = average_precision_score(label_all.cpu().numpy(), prob)
-                    auc = roc_auc_score(label_all.detach().cpu().numpy(), prob)
+                    auc = roc_auc_score(label_all.cpu().numpy(), prob)
                     if rank == 0:
                         writer.add_scalar('plot/val-PR', pr, epoch * num_steps + n_iter)
                         writer.add_scalar('plot/val-AUC', auc, epoch * num_steps + n_iter)
@@ -191,7 +191,7 @@ def validate_module(config, rank, epoch, net, val_loader, logger, writer):
             acc_or_auc = auc
         else:
             pred = np.argmax(y_all.detach().cpu().numpy(), axis=1)
-            acc = (pred == label_all.detach().cpu().numpy()).sum() / label_all.shape[0]
+            acc = (pred == label_all.cpu().numpy()).sum() / label_all.shape[0]
             logger.info(f'Acc for validation of epoch {epoch} is {acc:.3f}')
             acc_or_auc = acc
         logger.info(f'Epoch {epoch} validating finished !!!')
