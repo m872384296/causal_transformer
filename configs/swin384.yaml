@@ -1,4 +1,4 @@
-img_size: 192
+img_size: 384
 n_env: 5
 data_path: ./datasets/mimic
 batch_size: 25
