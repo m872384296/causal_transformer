@@ -1,7 +1,7 @@
 img_size: 384
 n_env: 5
 data_path: ./datasets/mimic
-batch_size: 25
+batch_size: 10
 batch_size_spl: 50
 mean: null
 std: null

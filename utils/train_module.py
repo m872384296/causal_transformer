@@ -4,7 +4,7 @@ from torch.cuda.amp import autocast
 import torch
 import torch.nn.functional as F
 import torch.distributed as dist
-from sklearn.metrics import roc_auc_score, f1_score
+from sklearn.metrics import roc_auc_score, average_precision_score
 from sklearn.decomposition import PCA
 from sklearn.mixture import GaussianMixture
 
@@ -67,11 +67,10 @@ def train_cls_module(config, rank, epoch, net, split_all, loss_fn, train_loader,
         if (n_iter + 1) % 1 == 0:
             if loss_fn.num_classes == 1:
                 prob = torch.sigmoid(y_all).cpu().numpy()
-                pred = np.where(prob > 0.5, 1, 0)
-                f1 = f1_score(label_all.cpu().numpy(), pred)
+                pr = average_precision_score(label_all.cpu().numpy(), prob)
                 auc = roc_auc_score(label_all.cpu().numpy(), prob)
                 if rank == 0:
-                    writer.add_scalar('plot/F1-score', f1, epoch * num_steps + n_iter)
+                    writer.add_scalar('plot/PR', pr, epoch * num_steps + n_iter)
                     writer.add_scalar('plot/AUC', auc, epoch * num_steps + n_iter)
             else:
                 pred = np.argmax(y_all.cpu().numpy(), axis=1)
@@ -82,10 +81,9 @@ def train_cls_module(config, rank, epoch, net, split_all, loss_fn, train_loader,
     penalty_mean = penalty_all / len(train_loader.dataset)
     if loss_fn.num_classes == 1:
         prob = torch.sigmoid(y_all).cpu().numpy()
-        pred = np.where(prob > 0.5, 1, 0)
-        f1 = f1_score(label_all.cpu().numpy(), pred)
+        pr = average_precision_score(label_all.cpu().numpy(), prob)
         auc = roc_auc_score(label_all.cpu().numpy(), prob)
-        logger.info(f'F1-score for training of epoch {epoch} is {f1:.3f}')
+        logger.info(f'PR for training of epoch {epoch} is {pr:.3f}')
         logger.info(f'AUC for training of epoch {epoch} is {auc:.3f}')
     else:
         pred = np.argmax(y_all.cpu().numpy(), axis=1)
@@ -174,11 +172,10 @@ def validate_module(config, rank, epoch, net, val_loader, logger, writer):
             if (n_iter + 1) % 1 == 0:
                 if net.module.num_classes == 1:
                     prob = torch.sigmoid(y_all).detach().cpu().numpy()
-                    pred = np.where(prob > 0.5, 1, 0)
-                    f1 = f1_score(label_all.detach().cpu().numpy(), pred)
+                    pr = average_precision_score(label_all.cpu().numpy(), prob)
                     auc = roc_auc_score(label_all.detach().cpu().numpy(), prob)
                     if rank == 0:
-                        writer.add_scalar('plot/val-F1-score', f1, epoch * num_steps + n_iter)
+                        writer.add_scalar('plot/val-PR', pr, epoch * num_steps + n_iter)
                         writer.add_scalar('plot/val-AUC', auc, epoch * num_steps + n_iter)
                 else:
                     pred = np.argmax(y_all.detach().cpu().numpy(), axis=1)
@@ -187,10 +184,9 @@ def validate_module(config, rank, epoch, net, val_loader, logger, writer):
                         writer.add_scalar('plot/val-ACC', acc, epoch * num_steps + n_iter)
         if net.module.num_classes == 1:
             prob = torch.sigmoid(y_all).detach().cpu().numpy()
-            pred = np.where(prob > 0.5, 1, 0)
-            f1 = f1_score(label_all.detach().cpu().numpy(), pred)
+            pr = average_precision_score(label_all.cpu().numpy(), prob)
             auc = roc_auc_score(label_all.detach().cpu().numpy(), prob)
-            logger.info(f'F1-score for validation of epoch {epoch} is {f1:.3f}')
+            logger.info(f'PR for validation of epoch {epoch} is {pr:.3f}')
             logger.info(f'AUC for validation of epoch {epoch} is {auc:.3f}')
             acc_or_auc = auc
         else:
