@@ -2,7 +2,7 @@ img_size: 384
 n_env: 5
 data_path: ./datasets/mimic
 batch_size: 10
-batch_size_spl: 50
+batch_size_spl: 20
 mean: null
 std: null
 resume_epoch: null
