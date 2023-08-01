@@ -137,7 +137,7 @@ def train_spl_module(config, rank, epoch, net, loss_fn, env_loader, optimizer, l
     logger.info(f'NCE of epoch {epoch} is {loss_mean:.3f}')   
     split = torch.zeros(torch.max(idx_all)+1, config['n_env'], dtype=torch.long).cuda(rank)
     if rank == 0:
-        pca = PCA(n_components=128)
+        pca = PCA(n_components=128, iterated_power=100)
         y_pca = pca.fit_transform(y_all.numpy())
         gmm = GaussianMixture(n_components=config['n_env'])
         split_all = gmm.fit_predict(y_pca)
