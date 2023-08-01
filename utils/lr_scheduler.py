@@ -1,8 +1,8 @@
 from torch.optim.lr_scheduler import _LRScheduler, CosineAnnealingLR, SequentialLR
 
 def build_all_lrs(opt):
-    lrs_cls = build_lrs(opt[0], milestone=100, T_max=100)
-    lrs_spl = build_lrs(opt[1], milestone=50, T_max=50)
+    lrs_cls = build_lrs(opt[0], milestone=500, T_max=500)
+    lrs_spl = build_lrs(opt[1], milestone=100, T_max=100)
     return lrs_cls, lrs_spl
 
 class WarmUpLR(_LRScheduler):

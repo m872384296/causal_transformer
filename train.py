@@ -51,12 +51,7 @@ def main(rank, config):
         train_loader.sampler.set_epoch(epoch)
         logger.info('=' * 50)
         logger.info(f'Epoch {epoch} begin training and environment splitting......')
-        # conf, h, idx = train_cls_module(config, rank, epoch, net[0], split_all, irm_lossfn, train_loader, opt[0], lrs[0], scaler[0], logger, writer)
-        
-        conf = torch.randn(40624, 22)
-        h = torch.randn(40624, 144, 1536)
-        idx = torch.arange(40624)
-
+        conf, h, idx = train_cls_module(config, rank, epoch, net[0], split_all, irm_lossfn, train_loader, opt[0], lrs[0], scaler[0], logger, writer)
         env_loader = build_envloader(config, conf, h, idx)
         split_all = train_spl_module(config, rank, epoch, net[1], nce_lossfn, env_loader, opt[1], lrs[1], scaler[1], logger, writer)
         logger.info(f'Epoch {epoch} training and environment splitting finished !!!')
