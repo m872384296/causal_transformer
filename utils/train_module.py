@@ -7,6 +7,7 @@ import torch.distributed as dist
 from sklearn.metrics import roc_auc_score, average_precision_score
 from sklearn.decomposition import PCA
 from sklearn.mixture import GaussianMixture
+from threadpoolctl import threadpool_limits
 
 def train_cls_module(config, rank, epoch, net, split_all, loss_fn, train_loader, optimizer, lr_scheduler, scaler, logger, writer):
     net.train()
@@ -137,8 +138,9 @@ def train_spl_module(config, rank, epoch, net, loss_fn, env_loader, optimizer, l
     logger.info(f'NCE of epoch {epoch} is {loss_mean:.3f}')   
     split = torch.zeros(torch.max(idx_all)+1, config['n_env'], dtype=torch.long).cuda(rank)
     if rank == 0:
-        pca = PCA(n_components=128, iterated_power=3)
-        y_pca = pca.fit_transform(y_all.numpy())
+        with threadpool_limits(limits=1):
+            pca = PCA(n_components=128)
+            y_pca = pca.fit_transform(y_all.numpy())
         gmm = GaussianMixture(n_components=config['n_env'])
         split_all = gmm.fit_predict(y_pca)
         split_all = F.one_hot(torch.from_numpy(split_all)).cuda()
