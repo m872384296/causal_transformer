@@ -1,4 +1,4 @@
-from models.swin_transformer_v2_f import SwinTransformerV2
+from models.swin_transformer_v2 import SwinTransformerV2
 from models.transformer_decoder import decoder
 from torch import nn
 
