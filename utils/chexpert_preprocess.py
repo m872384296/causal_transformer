@@ -1,5 +1,4 @@
 import pandas as pd
-import numpy as np
 import shutil
 import os
 from tqdm import tqdm
@@ -23,9 +22,9 @@ def create_testset(chexpert_root, target_path, logger):
         os.makedirs(target_path)
     logger.info('Creating testsets......')
     for i in tqdm(range(label.shape[0]), desc='Creating'):
-        path = os.path.join(chexpert_root, 'chexpertchestxrays-u20210408/'+label.iloc[i, 0])
-        save_path = os.path.join(target_path, str(i) + '.jpg')
+        path = os.path.join(chexpert_root, f'chexpertchestxrays-u20210408/{label.iloc[i, 0]}')
+        save_path = os.path.join(target_path, f'{i}.jpg')
         shutil.copy(path, save_path)
-        label_file.loc[i] = [str(i) +'.jpg', label.iloc[i, 1]]
+        label_file.loc[i] = [f'{i}.jpg', label.iloc[i, 1]]
     label_file.to_csv(os.path.join(target_path, 'label.csv'), index=False, header=False)
     logger.info('Finish creating testsets !!!')

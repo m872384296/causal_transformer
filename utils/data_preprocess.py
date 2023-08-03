@@ -8,9 +8,9 @@ def create_dataset(cxr_root, mimic_root, target_path, logger):
     cxr_path = os.path.join(cxr_root, 'physionet.org/files/mimic-cxr-jpg/2.0.0/')
     physio_path = os.path.join(cxr_root, 'physionet.org/files/mimic-cxr-jpg/2.0.0/files/')
     logger.info('Loading data files......')
-    label = pd.read_csv(cxr_path + 'mimic-cxr-2.0.0-chexpert.csv.gz', compression='gzip')
-    meta = pd.read_csv(cxr_path + 'mimic-cxr-2.0.0-metadata.csv.gz', compression='gzip')
-    spl = pd.read_csv(cxr_path + 'mimic-cxr-2.0.0-split.csv.gz', compression='gzip')
+    label = pd.read_csv(f'{cxr_path}mimic-cxr-2.0.0-chexpert.csv.gz', compression='gzip')
+    meta = pd.read_csv(f'{cxr_path}mimic-cxr-2.0.0-metadata.csv.gz', compression='gzip')
+    spl = pd.read_csv(f'{cxr_path}mimic-cxr-2.0.0-split.csv.gz', compression='gzip')
     adm = pd.read_csv(os.path.join(mimic_root, 'admissions.csv.gz'), compression='gzip')
     pat = pd.read_csv(os.path.join(mimic_root, 'patients.csv.gz'), compression='gzip')
     omr = pd.read_csv(os.path.join(mimic_root, 'omr.csv.gz'), compression='gzip')
@@ -80,44 +80,44 @@ def create_dataset(cxr_root, mimic_root, target_path, logger):
         date = meta.loc[i, 'StudyDate']
         if split == 'train':        
             if suid in range(10000000, 11000000):
-                path = physio_path + 'p10/p' + str(suid) + '/s' + str(stid) + '/' + dicid + '.jpg'
-                save_path = train_dir + str(l) + '.jpg'
+                path = f'{physio_path}p10/p{suid}/s{stid}/{dicid}.jpg'
+                save_path = f'{train_dir}{l}.jpg'
                 shutil.copy(path, save_path)
             elif suid in range(11000000, 12000000):
-                path = physio_path + 'p11/p' + str(suid) + '/s' + str(stid) + '/' + dicid + '.jpg'
-                save_path = train_dir + str(l) + '.jpg'
+                path = f'{physio_path}p11/p{suid}/s{stid}/{dicid}.jpg'
+                save_path = f'{train_dir}{l}.jpg'
                 shutil.copy(path, save_path)
             elif suid in range(12000000, 13000000):
-                path = physio_path + 'p12/p' + str(suid) + '/s' + str(stid) + '/' + dicid + '.jpg'
-                save_path = train_dir + str(l) + '.jpg'
+                path = f'{physio_path}p12/p{suid}/s{stid}/{dicid}.jpg'
+                save_path = f'{train_dir}{l}.jpg'
                 shutil.copy(path, save_path)
             elif suid in range(13000000, 14000000):
-                path = physio_path + 'p13/p' + str(suid) + '/s' + str(stid) + '/' + dicid + '.jpg'
-                save_path = train_dir + str(l) + '.jpg'
+                path = f'{physio_path}p13/p{suid}/s{stid}/{dicid}.jpg'
+                save_path = f'{train_dir}{l}.jpg'
                 shutil.copy(path, save_path)
             elif suid in range(14000000, 15000000):
-                path = physio_path + 'p14/p' + str(suid) + '/s' + str(stid) + '/' + dicid + '.jpg'
-                save_path = train_dir + str(l) + '.jpg'
+                path = f'{physio_path}p14/p{suid}/s{stid}/{dicid}.jpg'
+                save_path = f'{train_dir}{l}.jpg'
                 shutil.copy(path, save_path)
             elif suid in range(15000000, 16000000):
-                path = physio_path + 'p15/p' + str(suid) + '/s' + str(stid) + '/' + dicid + '.jpg'
-                save_path = train_dir + str(l) + '.jpg'
+                path = f'{physio_path}p15/p{suid}/s{stid}/{dicid}.jpg'
+                save_path = f'{train_dir}{l}.jpg'
                 shutil.copy(path, save_path)
             elif suid in range(16000000, 17000000):
-                path = physio_path + 'p16/p' + str(suid) + '/s' + str(stid) + '/' + dicid + '.jpg'
-                save_path = train_dir + str(l) + '.jpg'
+                path = f'{physio_path}p16/p{suid}/s{stid}/{dicid}.jpg'
+                save_path = f'{train_dir}{l}.jpg'
                 shutil.copy(path, save_path)
             elif suid in range(17000000, 18000000):
-                path = physio_path + 'p17/p' + str(suid) + '/s' + str(stid) + '/' + dicid + '.jpg'
-                save_path = train_dir + str(l) + '.jpg'
+                path = f'{physio_path}p17/p{suid}/s{stid}/{dicid}.jpg'
+                save_path = f'{train_dir}{l}.jpg'
                 shutil.copy(path, save_path)
             elif suid in range(18000000, 19000000):
-                path = physio_path + 'p18/p' + str(suid) + '/s' + str(stid) + '/' + dicid + '.jpg'
-                save_path = train_dir + str(l) + '.jpg'
+                path = f'{physio_path}p18/p{suid}/s{stid}/{dicid}.jpg'
+                save_path = f'{train_dir}{l}.jpg'
                 shutil.copy(path, save_path)
             elif suid in range(19000000, 20000000):
-                path = physio_path + 'p19/p' + str(suid) + '/s' + str(stid) + '/' + dicid + '.jpg'
-                save_path = train_dir + str(l) + '.jpg'
+                path = f'{physio_path}p19/p{suid}/s{stid}/{dicid}.jpg'
+                save_path = f'{train_dir}{l}.jpg'
                 shutil.copy(path, save_path)
             label_train.append(label.loc[label['study_id']==stid, 'Pneumonia'].values)
             if suid in list(adm['subject_id']):
@@ -151,93 +151,93 @@ def create_dataset(cxr_root, mimic_root, target_path, logger):
             l = l + 1
         elif split == 'validate':
             if suid in range(10000000, 11000000):
-                path = physio_path + 'p10/p' + str(suid) + '/s' + str(stid) + '/' + dicid + '.jpg'
-                save_path = val_dir + str(m) + '.jpg'
+                path = f'{physio_path}p10/p{suid}/s{stid}/{dicid}.jpg'
+                save_path = f'{val_dir}{m}.jpg'
                 shutil.copy(path, save_path)
             elif suid in range(11000000, 12000000):
-                path = physio_path + 'p11/p' + str(suid) + '/s' + str(stid) + '/' + dicid + '.jpg'
-                save_path = val_dir + str(m) + '.jpg'
+                path = f'{physio_path}p11/p{suid}/s{stid}/{dicid}.jpg'
+                save_path = f'{val_dir}{m}.jpg'
                 shutil.copy(path, save_path)
             elif suid in range(12000000, 13000000):
-                path = physio_path + 'p12/p' + str(suid) + '/s' + str(stid) + '/' + dicid + '.jpg'
-                save_path = val_dir + str(m) + '.jpg'
+                path = f'{physio_path}p12/p{suid}/s{stid}/{dicid}.jpg'
+                save_path = f'{val_dir}{m}.jpg'
                 shutil.copy(path, save_path)
             elif suid in range(13000000, 14000000):
-                path = physio_path + 'p13/p' + str(suid) + '/s' + str(stid) + '/' + dicid + '.jpg'
-                save_path = val_dir + str(m) + '.jpg'
+                path = f'{physio_path}p13/p{suid}/s{stid}/{dicid}.jpg'
+                save_path = f'{val_dir}{m}.jpg'
                 shutil.copy(path, save_path)
             elif suid in range(14000000, 15000000):
-                path = physio_path + 'p14/p' + str(suid) + '/s' + str(stid) + '/' + dicid + '.jpg'
-                save_path = val_dir + str(m) + '.jpg'
+                path = f'{physio_path}p14/p{suid}/s{stid}/{dicid}.jpg'
+                save_path = f'{val_dir}{m}.jpg'
                 shutil.copy(path, save_path)
             elif suid in range(15000000, 16000000):
-                path = physio_path + 'p15/p' + str(suid) + '/s' + str(stid) + '/' + dicid + '.jpg'
-                save_path = val_dir + str(m) + '.jpg'
+                path = f'{physio_path}p15/p{suid}/s{stid}/{dicid}.jpg'
+                save_path = f'{val_dir}{m}.jpg'
                 shutil.copy(path, save_path)
             elif suid in range(16000000, 17000000):
-                path = physio_path + 'p16/p' + str(suid) + '/s' + str(stid) + '/' + dicid + '.jpg'
-                save_path = val_dir + str(m) + '.jpg'
+                path = f'{physio_path}p16/p{suid}/s{stid}/{dicid}.jpg'
+                save_path = f'{val_dir}{m}.jpg'
                 shutil.copy(path, save_path)
             elif suid in range(17000000, 18000000):
-                path = physio_path + 'p17/p' + str(suid) + '/s' + str(stid) + '/' + dicid + '.jpg'
-                save_path = val_dir + str(m) + '.jpg'
+                path = f'{physio_path}p17/p{suid}/s{stid}/{dicid}.jpg'
+                save_path = f'{val_dir}{m}.jpg'
                 shutil.copy(path, save_path)
             elif suid in range(18000000, 19000000):
-                path = physio_path + 'p18/p' + str(suid) + '/s' + str(stid) + '/' + dicid + '.jpg'
-                save_path = val_dir + str(m) + '.jpg'
+                path = f'{physio_path}p18/p{suid}/s{stid}/{dicid}.jpg'
+                save_path = f'{val_dir}{m}.jpg'
                 shutil.copy(path, save_path)
             elif suid in range(19000000, 20000000):
-                path = physio_path + 'p19/p' + str(suid) + '/s' + str(stid) + '/' + dicid + '.jpg'
-                save_path = val_dir + str(m) + '.jpg'
+                path = f'{physio_path}p19/p{suid}/s{stid}/{dicid}.jpg'
+                save_path = f'{val_dir}{m}.jpg'
                 shutil.copy(path, save_path)
             label_val.append(label.loc[label['study_id']==stid, 'Pneumonia'].values)
             m = m + 1
         else:
             if suid in range(10000000, 11000000):
-                path = physio_path + 'p10/p' + str(suid) + '/s' + str(stid) + '/' + dicid + '.jpg'
-                save_path = test_dir + dicid + '.jpg'
+                path = f'{physio_path}p10/p{suid}/s{stid}/{dicid}.jpg'
+                save_path = f'{test_dir}{dicid}.jpg'
                 shutil.copy(path, save_path)
             elif suid in range(11000000, 12000000):
-                path = physio_path + 'p11/p' + str(suid) + '/s' + str(stid) + '/' + dicid + '.jpg'
-                save_path = test_dir + dicid + '.jpg'
+                path = f'{physio_path}p11/p{suid}/s{stid}/{dicid}.jpg'
+                save_path = f'{test_dir}{dicid}.jpg'
                 shutil.copy(path, save_path)
             elif suid in range(12000000, 13000000):
-                path = physio_path + 'p12/p' + str(suid) + '/s' + str(stid) + '/' + dicid + '.jpg'
-                save_path = test_dir + dicid + '.jpg'
+                path = f'{physio_path}p12/p{suid}/s{stid}/{dicid}.jpg'
+                save_path = f'{test_dir}{dicid}.jpg'
                 shutil.copy(path, save_path)
             elif suid in range(13000000, 14000000):
-                path = physio_path + 'p13/p' + str(suid) + '/s' + str(stid) + '/' + dicid + '.jpg'
-                save_path = test_dir + dicid + '.jpg'
+                path = f'{physio_path}p13/p{suid}/s{stid}/{dicid}.jpg'
+                save_path = f'{test_dir}{dicid}.jpg'
                 shutil.copy(path, save_path)
             elif suid in range(14000000, 15000000):
-                path = physio_path + 'p14/p' + str(suid) + '/s' + str(stid) + '/' + dicid + '.jpg'
-                save_path = test_dir + dicid + '.jpg'
+                path = f'{physio_path}p14/p{suid}/s{stid}/{dicid}.jpg'
+                save_path = f'{test_dir}{dicid}.jpg'
                 shutil.copy(path, save_path)
             elif suid in range(15000000, 16000000):
-                path = physio_path + 'p15/p' + str(suid) + '/s' + str(stid) + '/' + dicid + '.jpg'
-                save_path = test_dir + dicid + '.jpg'
+                path = f'{physio_path}p15/p{suid}/s{stid}/{dicid}.jpg'
+                save_path = f'{test_dir}{dicid}.jpg'
                 shutil.copy(path, save_path)
             elif suid in range(16000000, 17000000):
-                path = physio_path + 'p16/p' + str(suid) + '/s' + str(stid) + '/' + dicid + '.jpg'
-                save_path = test_dir + dicid + '.jpg'
+                path = f'{physio_path}p16/p{suid}/s{stid}/{dicid}.jpg'
+                save_path = f'{test_dir}{dicid}.jpg'
                 shutil.copy(path, save_path)
             elif suid in range(17000000, 18000000):
-                path = physio_path + 'p17/p' + str(suid) + '/s' + str(stid) + '/' + dicid + '.jpg'
-                save_path = test_dir + dicid + '.jpg'
+                path = f'{physio_path}p17/p{suid}/s{stid}/{dicid}.jpg'
+                save_path = f'{test_dir}{dicid}.jpg'
                 shutil.copy(path, save_path)
             elif suid in range(18000000, 19000000):
-                path = physio_path + 'p18/p' + str(suid) + '/s' + str(stid) + '/' + dicid + '.jpg'
-                save_path = test_dir + dicid + '.jpg'
+                path = f'{physio_path}p18/p{suid}/s{stid}/{dicid}.jpg'
+                save_path = f'{test_dir}{dicid}.jpg'
                 shutil.copy(path, save_path)
             elif suid in range(19000000, 20000000):
-                path = physio_path + 'p19/p' + str(suid) + '/s' + str(stid) + '/' + dicid + '.jpg'
-                save_path = test_dir + dicid + '.jpg'
+                path = f'{physio_path}p19/p{suid}/s{stid}/{dicid}.jpg'
+                save_path = f'{test_dir}{dicid}.jpg'
                 shutil.copy(path, save_path)
             label_i = label.loc[label['study_id']==stid, 'Pneumonia'].values.tolist()
-            label_test.loc[n] = [dicid+'.jpg', label_i[0]]
+            label_test.loc[n] = [f'{dicid}.jpg', label_i[0]]
             n = n + 1
-    confounder.to_csv(train_dir + 'confounder.csv', index=False)
-    pd.DataFrame(label_train).to_csv(train_dir + 'label.txt', index=False, header=False, lineterminator="\r\n")
-    pd.DataFrame(label_val).to_csv(val_dir + 'label.txt', index=False, header=False, lineterminator="\r\n")
-    label_test.to_csv(test_dir + 'label.csv', index=False, header=False)
+    confounder.to_csv(f'{train_dir}confounder.csv', index=False)
+    pd.DataFrame(label_train).to_csv(f'{train_dir}label.txt', index=False, header=False, lineterminator="\r\n")
+    pd.DataFrame(label_val).to_csv(f'{val_dir}label.txt', index=False, header=False, lineterminator="\r\n")
+    label_test.to_csv(f'{test_dir}label.csv', index=False, header=False)
     logger.info('Finish creating datasets !!!')

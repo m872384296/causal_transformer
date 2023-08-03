@@ -31,7 +31,7 @@ class train_dataset(Dataset):
 
     def __getitem__(self, index):
         if self.train:
-            path_img = os.path.join(self.data_dir, 'train/' + str(index) + '.jpg')
+            path_img = os.path.join(self.data_dir, f'train/{index}.jpg')
             label = self.label_train[index]
             conf = self.conf_train[index].astype('single')
             img = Image.open(path_img)
@@ -40,7 +40,7 @@ class train_dataset(Dataset):
                 img = self.transform(img)
             return img, label, conf, index
         else:
-            path_img = os.path.join(self.data_dir, 'val/' + str(index) + '.jpg')
+            path_img = os.path.join(self.data_dir, f'val/{index}.jpg')
             label = self.label_val[index]
             img = Image.open(path_img)
             img = img.convert('RGB')

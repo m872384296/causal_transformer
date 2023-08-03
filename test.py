@@ -77,7 +77,7 @@ def main(args):
             label_raw = pd.read_csv(args.label_file, header=None, index_col=0).squeeze().to_dict()
             label = [label_raw[x] for x in path_all]
             acc = (predict == label).sum() / len(label)
-            logger.info('Acc is {acc:.3f}')
+            logger.info(f'Acc is {acc:.3f}')
         output = pd.DataFrame(zip(path_all, predict), columns=['file_name', 'predict'])
     save_path = os.path.join(args.test_path, 'predict.csv')
     logger.info('Predicts saving......')
