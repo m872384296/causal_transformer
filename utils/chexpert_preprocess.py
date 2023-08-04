@@ -8,7 +8,7 @@ def create_testset(chexpert_root, target_path, logger):
     chex_zip = os.path.join(chexpert_root, 'chexpertchestxrays-u20210408/CheXpert-v1.0.zip')
     logger.info('Unzipping testsets......')
     with ZipFile(chex_zip) as zfs:
-        for zf in tqdm(zfs.infolist(), desc='Extracting'):
+        for zf in tqdm(zfs.infolist(), desc='Extracting', dynamic_ncols=True):
             zfs.extract(zf, os.path.join(chexpert_root, 'chexpertchestxrays-u20210408'))
     logger.info('Finish unzipping testsets !!!')
     chexpert_path = os.path.join(chexpert_root, 'chexpertchestxrays-u20210408/CheXpert-v1.0/train.csv')
@@ -21,7 +21,7 @@ def create_testset(chexpert_root, target_path, logger):
     if os.path.exists(target_path) == False:
         os.makedirs(target_path)
     logger.info('Creating testsets......')
-    for i in tqdm(range(label.shape[0]), desc='Creating'):
+    for i in tqdm(range(label.shape[0]), desc='Creating', dynamic_ncols=True):
         path = os.path.join(chexpert_root, f'chexpertchestxrays-u20210408/{label.iloc[i, 0]}')
         save_path = os.path.join(target_path, f'{i}.jpg')
         shutil.copy(path, save_path)

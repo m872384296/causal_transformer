@@ -42,7 +42,7 @@ def main(args):
     with torch.no_grad():
         y_all = torch.tensor([]).to(device)
         path_all = []
-        for img, path_img in tqdm(test_loader, desc='Testing'):
+        for img, path_img in tqdm(test_loader, desc='Testing', dynamic_ncols=True):
             img = img.to(device)
             y, _, _ = net(img)
             y_all = torch.cat((y_all, y), 0)

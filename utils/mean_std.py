@@ -10,7 +10,7 @@ def get_train_mean_std(path, n_cpus):
     dataloader = DataLoader(dataset, batch_size=1, num_workers=n_cpus)
     mean = torch.zeros(3)
     std = torch.zeros(3)
-    for data, _, _, _ in tqdm(dataloader, desc='Calculating'):
+    for data, _, _, _ in tqdm(dataloader, desc='Calculating', dynamic_ncols=True):
         for dim in range(3):
             mean[dim] += data[:, dim, :, :].mean()
             std[dim] += data[:, dim, :, :].std()
@@ -24,7 +24,7 @@ def get_test_mean_std(path, n_cpus):
     dataloader = DataLoader(dataset, batch_size=1, num_workers=n_cpus)
     mean = torch.zeros(3)
     std = torch.zeros(3)
-    for data, _ in tqdm(dataloader, desc='Analysing'):
+    for data, _ in tqdm(dataloader, desc='Analysing', dynamic_ncols=True):
         for dim in range(3):
             mean[dim] += data[:, dim, :, :].mean()
             std[dim] += data[:, dim, :, :].std()

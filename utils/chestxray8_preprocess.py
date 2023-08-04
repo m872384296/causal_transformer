@@ -9,9 +9,9 @@ def create_testset(chestxray8_root, target_path, logger):
     chest_zip = os.path.join(chestxray8_root, 'CXR8.zip')
     logger.info('Unzipping testsets......')
     with ZipFile(chest_zip) as zfs:
-        for zf in tqdm(zfs.infolist(), desc='Extracting'):
+        for zf in tqdm(zfs.infolist(), desc='Extracting', dynamic_ncols=True):
             zfs.extract(zf, chestxray8_root)
-    for i in tqdm(range(12), desc='Copying'):
+    for i in tqdm(range(12), desc='Copying', dynamic_ncols=True):
         t = tarfile.open(os.path.join(chestxray8_root, f'CXR8/images/images_{str(i + 1).zfill(3)}.tar.gz'))
         t.extractall(path = os.path.join(chestxray8_root, 'CXR8/images'))
     logger.info('Finish unzipping testsets !!!')    
@@ -26,7 +26,7 @@ def create_testset(chestxray8_root, target_path, logger):
     if os.path.exists(target_path) == False:
         os.makedirs(target_path)
     logger.info('Creating testsets......')
-    for k in tqdm(range(label.shape[0]), desc='Creating'):
+    for k in tqdm(range(label.shape[0]), desc='Creating', dynamic_ncols=True):
         path = os.path.join(chestxray8_root, f'CXR8/images/images/{label.index[k]}')
         save_path = os.path.join(target_path, f'{k}.jpg')
         shutil.copy(path, save_path)

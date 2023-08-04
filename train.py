@@ -5,8 +5,6 @@ import yaml
 import torch
 import argparse
 import torch.nn.functional as F
-import torch.distributed as dist
-from tqdm import tqdm
 from multiprocessing import cpu_count
 from torch.cuda import device_count
 from torch.utils.tensorboard import SummaryWriter

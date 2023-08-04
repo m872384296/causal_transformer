@@ -12,7 +12,7 @@ from threadpoolctl import threadpool_limits
 def train_cls_module(config, rank, epoch, net, split_all, loss_fn, train_loader, optimizer, lr_scheduler, scaler, logger, writer):
     net.train()
     if rank == 0:
-        iterator = tqdm(train_loader, desc=f'Training epoch {epoch}')
+        iterator = tqdm(train_loader, desc=f'Training epoch {epoch}', dynamic_ncols=True)
     else:
         iterator = train_loader
     num_steps = len(train_loader)
@@ -97,7 +97,7 @@ def train_cls_module(config, rank, epoch, net, split_all, loss_fn, train_loader,
 def train_spl_module(config, rank, epoch, net, loss_fn, env_loader, optimizer, lr_scheduler, scaler, logger, writer):
     net.train()
     if rank == 0:
-        iterator = tqdm(env_loader, desc=f'Splitting epoch {epoch}')
+        iterator = tqdm(env_loader, desc=f'Splitting epoch {epoch}', dynamic_ncols=True)
     else:
         iterator = env_loader
     num_steps = len(env_loader)
@@ -153,7 +153,7 @@ def validate_module(config, rank, epoch, net, val_loader, logger, writer):
     logger.info(f'Epoch {epoch} begin validating......')
     net.eval()
     if rank == 0:
-        iterator = tqdm(val_loader, desc=f'Validating epoch {epoch}')
+        iterator = tqdm(val_loader, desc=f'Validating epoch {epoch}', dynamic_ncols=True)
     else:
         iterator = val_loader
     num_steps = len(val_loader)

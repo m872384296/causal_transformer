@@ -72,7 +72,7 @@ def create_dataset(cxr_root, mimic_root, target_path, logger):
     if os.path.exists(test_dir) == False:
         os.makedirs(test_dir)
     logger.info('Creating datasets......')
-    for i in tqdm(spl.index, desc='Creating'):
+    for i in tqdm(spl.index, desc='Creating', dynamic_ncols=True):
         split = spl.loc[i, 'split']
         suid = spl.loc[i, 'subject_id']
         stid = spl.loc[i, 'study_id']
