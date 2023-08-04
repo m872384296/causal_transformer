@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 from multiprocessing import cpu_count
-from sklearn.metrics import f1_score, roc_curve, auc
+from sklearn.metrics import f1_score, roc_curve, auc, recall_score, average_precision_score, precision_score
 from utils.build_data import build_testloader
 from utils.build_net import build_swinv2
 from utils.logger import create_logger
@@ -56,11 +56,14 @@ def main(args):
             label = [label_map.index(label_raw[x]) for x in path_all]
             fpr, tpr, thresholds = roc_curve(label, prob)
             auroc = auc(fpr, tpr)
+            pr = average_precision_score(label, prob)
             threshold = thresholds[np.argmax(tpr - fpr)]
             np.savetxt('./temp/threshold', [threshold])
             predict = np.where(prob > threshold, 1, 0)
             f1 = f1_score(label, predict)
-            logger.info(f'F1-score is {f1:.3f}, AUC is {auroc:.3f}, best threshold for binary classification is {threshold:.3f}')
+            recall = recall_score(label, predict)
+            precision = precision_score(label, predict)
+            logger.info(f'AUC is {auroc:.3f}, PR is {pr:.3f}, recall is {recall:.3f}, precision is {precision:.3f}, F1-score is {f1:.3f}, best threshold for binary classification is {threshold:.3f}')
         elif args.binary_threshold is not None:
             threshold = args.binary_threshold
         elif os.path.exists('./temp/threshold'):
