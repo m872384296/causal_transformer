@@ -1,20 +1,22 @@
 import pandas as pd
 import numpy as np
 import shutil
-import os
+import os, tarfile
 from tqdm import tqdm
+from zipfile import ZipFile
 
-def create_dataset(cxr_root, mimic_root, target_path, logger):
-    cxr_path = os.path.join(cxr_root, 'physionet.org/files/mimic-cxr-jpg/2.0.0/')
-    physio_path = os.path.join(cxr_root, 'physionet.org/files/mimic-cxr-jpg/2.0.0/files/')
+def create_mimic(mimic_root, target_path, logger):
+    mimic_path = os.path.join(mimic_root, 'physionet.org/files/')
+    cxr_path = f'{mimic_path}mimic-cxr-jpg/2.0.0/'
+    hosp_path = f'{mimic_path}mimiciv/2.2/hosp/'
     logger.info('Loading data files......')
     label = pd.read_csv(f'{cxr_path}mimic-cxr-2.0.0-chexpert.csv.gz', compression='gzip')
     meta = pd.read_csv(f'{cxr_path}mimic-cxr-2.0.0-metadata.csv.gz', compression='gzip')
     spl = pd.read_csv(f'{cxr_path}mimic-cxr-2.0.0-split.csv.gz', compression='gzip')
-    adm = pd.read_csv(os.path.join(mimic_root, 'admissions.csv.gz'), compression='gzip')
-    pat = pd.read_csv(os.path.join(mimic_root, 'patients.csv.gz'), compression='gzip')
-    omr = pd.read_csv(os.path.join(mimic_root, 'omr.csv.gz'), compression='gzip')
-    chunk = pd.read_csv(os.path.join(mimic_root, 'labevents.csv.gz'), chunksize=1000000, compression='gzip')
+    adm = pd.read_csv(f'{hosp_path}admissions.csv.gz', compression='gzip')
+    pat = pd.read_csv(f'{hosp_path}patients.csv.gz', compression='gzip')
+    omr = pd.read_csv(f'{hosp_path}omr.csv.gz', compression='gzip')
+    chunk = pd.read_csv(f'{hosp_path}labevents.csv.gz', chunksize=1000000, compression='gzip')
     lab = pd.concat(chunk)
     label = label[['subject_id', 'study_id', 'Pneumonia']].dropna()
     label = label.drop(label[label['Pneumonia']==-1].index)
@@ -71,6 +73,7 @@ def create_dataset(cxr_root, mimic_root, target_path, logger):
         os.makedirs(val_dir)
     if os.path.exists(test_dir) == False:
         os.makedirs(test_dir)
+    physio_path = f'{cxr_path}files/'
     logger.info('Creating datasets......')
     for i in tqdm(spl.index, desc='Creating', dynamic_ncols=True):
         split = spl.loc[i, 'split']
@@ -241,3 +244,87 @@ def create_dataset(cxr_root, mimic_root, target_path, logger):
     pd.DataFrame(label_val).to_csv(f'{val_dir}label.txt', index=False, header=False, lineterminator="\r\n")
     label_test.to_csv(f'{test_dir}label.csv', index=False, header=False)
     logger.info('Finish creating datasets !!!')
+
+def create_chexpert(chexpert_root, target_path, logger):
+    chex_zip = os.path.join(chexpert_root, 'chexpertchestxrays-u20210408/CheXpert-v1.0.zip')
+    logger.info('Unzipping testsets......')
+    with ZipFile(chex_zip) as zfs:
+        for zf in tqdm(zfs.infolist(), desc='Extracting', dynamic_ncols=True):
+            zfs.extract(zf, os.path.join(chexpert_root, 'chexpertchestxrays-u20210408'))
+    logger.info('Finish unzipping testsets !!!')
+    chexpert_path = os.path.join(chexpert_root, 'chexpertchestxrays-u20210408/CheXpert-v1.0/train.csv')
+    meta = pd.read_csv(chexpert_path)
+    meta = meta[['Path', 'AP/PA', 'Pneumonia']].dropna()
+    label = meta[['Path', 'Pneumonia']]
+    label = label.drop(label[label['Pneumonia']==-1].index)
+    label['Pneumonia'] = label['Pneumonia'].astype(int)
+    label_file = pd.DataFrame(columns=['file', 'label'])
+    if os.path.exists(target_path) == False:
+        os.makedirs(target_path)
+    logger.info('Creating testsets......')
+    for i in tqdm(range(label.shape[0]), desc='Creating', dynamic_ncols=True):
+        path = os.path.join(chexpert_root, f'chexpertchestxrays-u20210408/{label.iloc[i, 0]}')
+        save_path = os.path.join(target_path, f'{i}.jpg')
+        shutil.copy(path, save_path)
+        label_file.loc[i] = [f'{i}.jpg', label.iloc[i, 1]]
+    label_file.to_csv(os.path.join(target_path, 'label.csv'), index=False, header=False)
+    logger.info('Finish creating testsets !!!')
+
+def create_chestxray8(chestxray8_root, target_path, logger):
+    chest_zip = os.path.join(chestxray8_root, 'CXR8.zip')
+    logger.info('Unzipping testsets......')
+    with ZipFile(chest_zip) as zfs:
+        for zf in tqdm(zfs.infolist(), desc='Extracting', dynamic_ncols=True):
+            zfs.extract(zf, chestxray8_root)
+    for i in tqdm(range(12), desc='Copying', dynamic_ncols=True):
+        t = tarfile.open(os.path.join(chestxray8_root, f'CXR8/images/images_{str(i + 1).zfill(3)}.tar.gz'))
+        t.extractall(path = os.path.join(chestxray8_root, 'CXR8/images'))
+    logger.info('Finish unzipping testsets !!!')    
+    chest_path = os.path.join(chestxray8_root, 'CXR8')
+    meta = pd.read_csv(f'{chest_path}/Data_Entry_2017_v2020.csv', index_col=0)
+    ids = np.loadtxt(f'{chest_path}/train_val_list.txt', dtype=str)
+    label = meta.loc[ids, 'Finding Labels']
+    label = label[label.str.contains('No Finding') | label.str.contains('Pneumonia')]
+    label[label.str.contains('No Finding')] = '0'
+    label[label.str.contains('Pneumonia')] = '1'
+    label_file = pd.DataFrame(columns=['file', 'label'])
+    if os.path.exists(target_path) == False:
+        os.makedirs(target_path)
+    logger.info('Creating testsets......')
+    for k in tqdm(range(label.shape[0]), desc='Creating', dynamic_ncols=True):
+        path = os.path.join(chestxray8_root, f'CXR8/images/images/{label.index[k]}')
+        save_path = os.path.join(target_path, f'{k}.jpg')
+        shutil.copy(path, save_path)
+        label_file.loc[k] = [f'{k}.jpg', label[k]]
+    label_file.to_csv(os.path.join(target_path, 'label.csv'), index=False, header=False)
+    logger.info('Finish creating testsets !!!')
+
+def create_openi(openi_root, target_path, logger):
+    openi_zip = os.path.join(openi_root, 'archive.zip')
+    logger.info('Unzipping testsets......')
+    with ZipFile(openi_zip) as zfs:
+        for zf in tqdm(zfs.infolist(), desc='Extracting', dynamic_ncols=True):
+            zfs.extract(zf, openi_root)
+    logger.info('Finish unzipping testsets !!!')    
+    proj = pd.read_csv(os.path.join(openi_root, 'indiana_projections.csv'))
+    rep = pd.read_csv(os.path.join(openi_root, 'indiana_reports.csv'), index_col=0)
+    label = rep['MeSH']
+    label = label[label.str.contains('normal') | label.str.contains('Pneumonia')]
+    label[label.str.contains('normal')] = '0'
+    label[label.str.contains('Pneumonia')] = '1'
+    proj = proj[proj['uid'].isin(label.index)]
+    proj = proj[proj['projection'] == 'Frontal']
+    openi_path = os.path.join(openi_root, 'images/images_normalized/')
+    label_file = pd.DataFrame(columns=['file', 'label'])
+    if os.path.exists(target_path) == False:
+        os.makedirs(target_path)
+    logger.info('Creating testsets......')
+    for i in tqdm(range(proj.shape[0]), desc='Creating', dynamic_ncols=True):
+        filename = proj['filename'].iloc[i]
+        path = f'{openi_path}{filename}'
+        save_path = os.path.join(target_path, f'{i}.jpg')
+        shutil.copy(path, save_path)
+        label_i = label[label.index == proj['uid'].iloc[i]]
+        label_file.loc[i] = [f'{i}.jpg', label_i.values[0]]
+    label_file.to_csv(os.path.join(target_path, 'label.csv'), index=False, header=False)
+    logger.info('Finish creating testsets !!!')

@@ -2,6 +2,7 @@
 
 import argparse
 import yaml
+import os
 import numpy as np
 from multiprocessing import cpu_count
 from utils.mean_std import get_train_mean_std, get_test_mean_std
@@ -19,7 +20,8 @@ def main(args):
     if args.test_path:
         mean, std = get_test_mean_std(args.test_path, n_cpus)
     else:
-        mean, std = get_train_mean_std(config['data_path'], n_cpus)    
+        train_path = os.path.join(config['data_path'], config['train_set'])
+        mean, std = get_train_mean_std(train_path, n_cpus)    
         np.savetxt('./temp/mean', mean)
         np.savetxt('./temp/std', std)
     logger.info('Calculating done !!!')

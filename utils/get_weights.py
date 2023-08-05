@@ -29,8 +29,9 @@ def load_weights(path, model, map_location, logger):
     torch.cuda.empty_cache()
 
 def load_pretrained(config, model, map_location, logger):
-    logger.info(f"==============> Loading weight {config['pretrained_path']} for fine-tuning......")
-    checkpoint = torch.load(config['pretrained_path'], map_location=map_location)
+    pretrain_path = os.path.join(config['pretrained_path'], config['pretrained_model'])
+    logger.info(f"==============> Loading weight {pretrain_path} for fine-tuning......")
+    checkpoint = torch.load(pretrain_path, map_location=map_location)
     state_dict = checkpoint['model']
 
     # delete relative_position_index since we always re-init it
@@ -112,7 +113,7 @@ def load_pretrained(config, model, map_location, logger):
     msg = model.load_state_dict(state_dict, strict=False)
     logger.warning(msg)
     
-    logger.info(f"=> loaded successfully '{config['pretrained_path']}'")
+    logger.info(f"=> loaded successfully '{pretrain_path}'")
 
     del checkpoint
     torch.cuda.empty_cache()

@@ -92,7 +92,7 @@ class env_dataset(Dataset):
 class build_trainloader:
     def __init__(self, rank, config):
         self.batch_size = config['batch_size']
-        self.path = config['data_path']
+        self.path = os.path.join(config['data_path'], config['train_set'])
         if config['mean'] is not None:
             self.mean = config['mean']
         elif os.path.exists('./temp/mean'):

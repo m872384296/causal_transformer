@@ -35,8 +35,8 @@ class decoder(nn.Module):
                 _, weight = self.attn(x[i], memory[j], memory[j], need_weights=True)
                 weights[i, j]=weight.squeeze()
         memory = (memory / memory.norm(dim=2, keepdim=True)).permute(1, 2, 0)
-        x_norm = (x / x.norm(dim=2, keepdim=True)).permute(1, 0, 2)
-        prod = torch.matmul(x_norm, memory).permute(1, 2, 0) * weights
+        x = (x / x.norm(dim=2, keepdim=True)).permute(1, 0, 2)
+        prod = torch.matmul(x, memory).permute(1, 2, 0) * weights
         logit_scale = self.logit_scale.exp()
         logits_per_table = logit_scale * torch.sum(prod, dim = 2)
         logits_per_image = logits_per_table.t()
